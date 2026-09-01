@@ -3,27 +3,30 @@ local LocalPlayer = Players.LocalPlayer
 local parentGui = gethui and gethui() or (pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui"))
 if parentGui:FindFirstChild("PanewDiscordUltimate") then parentGui.PanewDiscordUltimate:Destroy() end
 
--- ระบบเสียง AI ผู้หญิงพูดตอนเปิดสคริปต์
-task.spawn(function()
-    pcall(function()
-        local text = "คุณได้รันสคริปซันแล้วขอให้สนุก"
-        local encodedText = HttpService:UrlEncode(text)
-        local ttsUrl = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" .. encodedText
-        local fileName = "SunScript_Voice_TH.mp3"
-        
-        if writefile and getcustomasset then
-            if not isfile(fileName) then
+-- ระบบเสียงพากย์ AI ผู้หญิง (ปรับ Pitch นุ่มนวล ไม่แหลมเกินไป)
+local function playCuteVoice(text)
+    task.spawn(function()
+        pcall(function()
+            local encodedText = HttpService:UrlEncode(text)
+            local ttsUrl = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" .. encodedText
+            local fileName = "SunVoice_Temp.mp3"
+            
+            if writefile and getcustomasset then
                 writefile(fileName, game:HttpGet(ttsUrl))
+                local sound = Instance.new("Sound")
+                sound.SoundId = getcustomasset(fileName)
+                sound.PlaybackSpeed = 1.05 -- ปรับความแหลมลงให้อยู่ในระดับนุ่มนวลพอดี
+                sound.Volume = 3
+                sound.Parent = game:GetService("SoundService")
+                sound:Play()
+                sound.Ended:Connect(function() sound:Destroy() end)
             end
-            local sound = Instance.new("Sound")
-            sound.SoundId = getcustomasset(fileName)
-            sound.Volume = 3
-            sound.Parent = game:GetService("SoundService")
-            sound:Play()
-            sound.Ended:Connect(function() sound:Destroy() end)
-        end
+        end)
     end)
-end)
+end
+
+-- เสียงต้อนรับ
+playCuteVoice("คุณได้รันสคริปต์ซันแล้ว ขอให้สนุกนะคะ")
 
 local ScreenGui = Instance.new("ScreenGui", parentGui) ScreenGui.Name = "PanewDiscordUltimate" ScreenGui.ResetOnSpawn = false
 
@@ -49,20 +52,20 @@ end
 local PButton = Instance.new("TextButton", ScreenGui) PButton.Size = UDim2.new(0, 50, 0, 50) PButton.Position = UDim2.new(0.04, 0, 0.18, 0) PButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242) PButton.Font = Enum.Font.SourceSansBold PButton.Text = "P" PButton.TextColor3 = Color3.fromRGB(255, 255, 255) PButton.TextSize = 24
 Instance.new("UICorner", PButton).CornerRadius = UDim.new(1, 0) makeDraggable(PButton)
 
-local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 420, 0, 300) MainFrame.Position = UDim2.new(0.25, 0, 0.2, 0) MainFrame.BackgroundColor3 = Color3.fromRGB(49, 51, 56)
+local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 440, 0, 310) MainFrame.Position = UDim2.new(0.25, 0, 0.2, 0) MainFrame.BackgroundColor3 = Color3.fromRGB(49, 51, 56)
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10) makeDraggable(MainFrame)
 
 local Header = Instance.new("Frame", MainFrame) Header.Size = UDim2.new(1, 0, 0, 36) Header.BackgroundColor3 = Color3.fromRGB(35, 36, 40)
 local TitleText = Instance.new("TextLabel", Header) TitleText.Size = UDim2.new(1, -10, 1, 0) TitleText.Position = UDim2.new(0, 10, 0, 0) TitleText.BackgroundTransparency = 1 TitleText.Font = Enum.Font.SourceSansBold TitleText.Text = "พาแนว ยิงตึงๆ | By: ซัน 💬" TitleText.TextColor3 = Color3.fromRGB(255, 255, 255) TitleText.TextSize = 15 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 
-local Sidebar = Instance.new("Frame", MainFrame) Sidebar.Size = UDim2.new(0, 120, 1, -36) Sidebar.Position = UDim2.new(0, 0, 0, 36) Sidebar.BackgroundColor3 = Color3.fromRGB(43, 45, 49)
+local Sidebar = Instance.new("Frame", MainFrame) Sidebar.Size = UDim2.new(0, 130, 1, -36) Sidebar.Position = UDim2.new(0, 0, 0, 36) Sidebar.BackgroundColor3 = Color3.fromRGB(43, 45, 49)
 local SideList = Instance.new("UIListLayout", Sidebar) SideList.Padding = UDim.new(0, 4)
 
-local ContentArea = Instance.new("Frame", MainFrame) ContentArea.Size = UDim2.new(1, -130, 1, -44) ContentArea.Position = UDim2.new(0, 125, 0, 40) ContentArea.BackgroundTransparency = 1
+local ContentArea = Instance.new("Frame", MainFrame) ContentArea.Size = UDim2.new(1, -140, 1, -44) ContentArea.Position = UDim2.new(0, 135, 0, 40) ContentArea.BackgroundTransparency = 1
 
 local function createTabContainer()
-    local frame = Instance.new("ScrollingFrame", ContentArea) frame.Size = UDim2.new(1, 0, 1, 0) frame.BackgroundTransparency = 1 frame.ScrollBarThickness = 3 frame.Visible = false
-    local layout = Instance.new("UIListLayout", frame) layout.Padding = UDim.new(0, 6)
+    local frame = Instance.new("ScrollingFrame", ContentArea) frame.Size = UDim2.new(1, 0, 1, 0) frame.BackgroundTransparency = 1 frame.ScrollBarThickness = 4 frame.Visible = false
+    local layout = Instance.new("UIListLayout", frame) layout.Padding = UDim.new(0, 8)
     return frame
 end
 
@@ -71,13 +74,13 @@ local TabAIFrame = Instance.new("Frame", ContentArea) TabAIFrame.Size = UDim2.ne
 TabHitboxFrame.Visible = true
 
 local function createChannel(name, id)
-    local btn = Instance.new("TextButton", Sidebar) btn.Size = UDim2.new(1, -8, 0, 30) btn.BackgroundColor3 = (id == 1) and Color3.fromRGB(58, 60, 66) or Color3.fromRGB(43, 45, 49) btn.Font = Enum.Font.SourceSansBold btn.Text = "# " .. name btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 12 btn.TextXAlignment = Enum.TextXAlignment.Left
+    local btn = Instance.new("TextButton", Sidebar) btn.Size = UDim2.new(1, -8, 0, 32) btn.BackgroundColor3 = (id == 1) and Color3.fromRGB(58, 60, 66) or Color3.fromRGB(43, 45, 49) btn.Font = Enum.Font.SourceSansBold btn.Text = "# " .. name btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 13 btn.TextXAlignment = Enum.TextXAlignment.Left
     Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 8)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     return btn
 end
 
-local channels = {createChannel("hitbox-ระบบ", 1), createChannel("esp-มองทะลุ", 2), createChannel("movement-เดินไว", 3), createChannel("ai-เพื่อนคุย", 4)}
+local channels = {createChannel("🎯 ฮิตบ็อกซ์", 1), createChannel("👁️ มองทะลุ", 2), createChannel("⚡ การเคลื่อนที่", 3), createChannel("🎀 พูดคุย AI", 4)}
 local frames = {TabHitboxFrame, TabESPFrame, TabSpeedFrame, TabAIFrame}
 
 for i, btn in ipairs(channels) do
@@ -89,47 +92,94 @@ for i, btn in ipairs(channels) do
     end)
 end
 
-local function createOptionBtn(parent, text, initialOn)
-    local btn = Instance.new("TextButton", parent) btn.Size = UDim2.new(0.96, 0, 0, 34) btn.BackgroundColor3 = initialOn and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) btn.Font = Enum.Font.SourceSansBold btn.Text = text btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 12
+local function createToggleBtn(parent, text, defaultOn)
+    local btn = Instance.new("TextButton", parent) btn.Size = UDim2.new(0.96, 0, 0, 34) btn.BackgroundColor3 = defaultOn and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) btn.Font = Enum.Font.SourceSansBold btn.Text = text btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 13
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     return btn
 end
 
-local hbPlayer, hbBot, espPlayer, espBot, espInfo, infJump = false, false, false, false, false, false
-local sizes, sizeNames, currentSizeIdx = {Vector3.new(5,5,5), Vector3.new(10,10,10), Vector3.new(20,20,20)}, {"เล็ก (5x5)", "กลาง (10x10)", "ใหญ่ตึงๆ (20x20)"}, 2
-local transparencies, transNames, currentTransIdx = {0.3, 0.6, 0.9, 1.0}, {"เห็นชัด (0.3)", "ปานกลาง (0.6)", "จางๆ (0.9)", "ล่องหน (1.0)"}, 2
+local function createSlider(parent, title, minVal, maxVal, defaultVal, suffix, callback)
+    local container = Instance.new("Frame", parent) container.Size = UDim2.new(0.96, 0, 0, 48) container.BackgroundColor3 = Color3.fromRGB(38, 40, 44)
+    Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
+
+    local label = Instance.new("TextLabel", container) label.Size = UDim2.new(0.65, 0, 0, 20) label.Position = UDim2.new(0, 8, 0, 4) label.BackgroundTransparency = 1 label.Font = Enum.Font.SourceSansBold label.Text = title label.TextColor3 = Color3.fromRGB(230, 230, 230) label.TextSize = 12 label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local valText = Instance.new("TextLabel", container) valText.Size = UDim2.new(0.3, 0, 0, 20) valText.Position = UDim2.new(0.67, 0, 0, 4) valText.BackgroundTransparency = 1 valText.Font = Enum.Font.SourceSansBold valText.Text = tostring(defaultVal) .. suffix valText.TextColor3 = Color3.fromRGB(120, 160, 255) valText.TextSize = 12 valText.TextXAlignment = Enum.TextXAlignment.Right
+
+    local sliderBG = Instance.new("Frame", container) sliderBG.Size = UDim2.new(0.92, 0, 0, 8) sliderBG.Position = UDim2.new(0.04, 0, 0.65, 0) sliderBG.BackgroundColor3 = Color3.fromRGB(25, 25, 28)
+    Instance.new("UICorner", sliderBG).CornerRadius = UDim.new(1, 0)
+
+    local sliderFill = Instance.new("Frame", sliderBG) sliderFill.Size = UDim2.new((defaultVal - minVal)/(maxVal - minVal), 0, 1, 0) sliderFill.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(1, 0)
+
+    local dragging = false
+    local function update(input)
+        local pos = math.clamp((input.Position.X - sliderBG.AbsolutePosition.X) / sliderBG.AbsoluteSize.X, 0, 1)
+        local val = math.floor(minVal + (maxVal - minVal) * pos)
+        sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+        valText.Text = tostring(val) .. suffix
+        callback(val)
+    end
+
+    sliderBG.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true update(input) end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then update(input) end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+
+    return container
+end
+
+local hbPlayer = false
+local hitboxSize = 10
+local hitboxTrans = 0.5
+local hitboxColor = Color3.fromRGB(88, 101, 242)
+
+local espPlayer = false
+local walkSpeedVal = 16
+local infJump = false
+
+local BtnHBPlayer = createToggleBtn(TabHitboxFrame, "🎯 ขยายตัวคนเล่น (Hitbox): ปิด", false)
+createSlider(TabHitboxFrame, "📐 ปรับขนาดความใหญ่", 2, 50, 10, "x", function(v) hitboxSize = v end)
+createSlider(TabHitboxFrame, "👁️ ปรับระดับความใส", 0, 100, 50, "%", function(v) hitboxTrans = v / 100 end)
+
 local colors, colorNames, currentColorIdx = {Color3.fromRGB(88, 101, 242), Color3.fromRGB(240, 71, 71), Color3.fromRGB(35, 165, 90)}, {"สีฟ้า", "สีแดง", "สีเขียว"}, 1
-local speeds, speedNames, currentSpeedIdx = {16, 32, 60, 100}, {"ปกติ (16)", "เร็ว (32)", "โคตรไว (60)", "เดอะแฟลช (100)"}, 1
+local BtnHBColor = createToggleBtn(TabHitboxFrame, "🎨 เลือกสี Hitbox: สีฟ้า", true) BtnHBColor.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
 
-local BtnHBPlayer = createOptionBtn(TabHitboxFrame, "🎯 Hitbox Player: OFF", false)
-local BtnHBBot = createOptionBtn(TabHitboxFrame, "🤖 Hitbox Bot: OFF", false)
-local BtnHBSize = createOptionBtn(TabHitboxFrame, "📐 ขนาด Hitbox: กลาง (10x10)", true) BtnHBSize.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
-local BtnHBTrans = createOptionBtn(TabHitboxFrame, "👁️ ความใส Hitbox: ปานกลาง (0.6)", true) BtnHBTrans.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
-local BtnHBColor = createOptionBtn(TabHitboxFrame, "🎨 สี Hitbox: สีฟ้า", true) BtnHBColor.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
+BtnHBPlayer.MouseButton1Click:Connect(function()
+    hbPlayer = not hbPlayer
+    BtnHBPlayer.Text = hbPlayer and "🎯 ขยายตัวคนเล่น (Hitbox): เปิด" or "🎯 ขยายตัวคนเล่น (Hitbox): ปิด"
+    BtnHBPlayer.BackgroundColor3 = hbPlayer and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60)
+end)
+BtnHBColor.MouseButton1Click:Connect(function()
+    currentColorIdx = (currentColorIdx % #colors) + 1
+    hitboxColor = colors[currentColorIdx]
+    BtnHBColor.Text = "🎨 เลือกสี Hitbox: " .. colorNames[currentColorIdx]
+end)
 
-local BtnESPPlayer = createOptionBtn(TabESPFrame, "👁️ ESP Player: OFF", false)
-local BtnESPBot = createOptionBtn(TabESPFrame, "👁️ ESP Bot: OFF", false)
-local BtnESPInfo = createOptionBtn(TabESPFrame, "🏷️ ESP ป้ายชื่อ + ระยะ: OFF", false)
+local BtnESPPlayer = createToggleBtn(TabESPFrame, "👁️ มองทะลุกำแพง (ESP): ปิด", false)
+BtnESPPlayer.MouseButton1Click:Connect(function()
+    espPlayer = not espPlayer
+    BtnESPPlayer.Text = espPlayer and "👁️ มองทะลุกำแพง (ESP): เปิด" or "👁️ มองทะลุกำแพง (ESP): ปิด"
+    BtnESPPlayer.BackgroundColor3 = espPlayer and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60)
+end)
 
-local BtnSpeed = createOptionBtn(TabSpeedFrame, "⚡ ความเร็วเดิน: ปกติ (16)", true) BtnSpeed.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
-local BtnInfJump = createOptionBtn(TabSpeedFrame, "🚀 กระโดดกลางอากาศ: OFF", false)
-
-BtnHBPlayer.MouseButton1Click:Connect(function() hbPlayer = not hbPlayer BtnHBPlayer.Text = hbPlayer and "🎯 Hitbox Player: ON" or "🎯 Hitbox Player: OFF" BtnHBPlayer.BackgroundColor3 = hbPlayer and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
-BtnHBBot.MouseButton1Click:Connect(function() hbBot = not hbBot BtnHBBot.Text = hbBot and "🤖 Hitbox Bot: ON" or "🤖 Hitbox Bot: OFF" BtnHBBot.BackgroundColor3 = hbBot and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
-BtnHBSize.MouseButton1Click:Connect(function() currentSizeIdx = (currentSizeIdx % #sizes) + 1 BtnHBSize.Text = "📐 ขนาด Hitbox: " .. sizeNames[currentSizeIdx] end)
-BtnHBTrans.MouseButton1Click:Connect(function() currentTransIdx = (currentTransIdx % #transparencies) + 1 BtnHBTrans.Text = "👁️ ความใส Hitbox: " .. transNames[currentTransIdx] end)
-BtnHBColor.MouseButton1Click:Connect(function() currentColorIdx = (currentColorIdx % #colors) + 1 BtnHBColor.Text = "🎨 สี Hitbox: " .. colorNames[currentColorIdx] end)
-
-BtnESPPlayer.MouseButton1Click:Connect(function() espPlayer = not espPlayer BtnESPPlayer.Text = espPlayer and "👁️ ESP Player: ON" or "👁️ ESP Player: OFF" BtnESPPlayer.BackgroundColor3 = espPlayer and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
-BtnESPBot.MouseButton1Click:Connect(function() espBot = not espBot BtnESPBot.Text = espBot and "👁️ ESP Bot: ON" or "👁️ ESP Bot: OFF" BtnESPBot.BackgroundColor3 = espBot and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
-BtnESPInfo.MouseButton1Click:Connect(function() espInfo = not espInfo BtnESPInfo.Text = espInfo and "🏷️ ESP ป้ายชื่อ + ระยะ: ON" or "🏷️ ESP ป้ายชื่อ + ระยะ: OFF" BtnESPInfo.BackgroundColor3 = espInfo and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
-BtnSpeed.MouseButton1Click:Connect(function() currentSpeedIdx = (currentSpeedIdx % #speeds) + 1 BtnSpeed.Text = "⚡ ความเร็วเดิน: " .. speedNames[currentSpeedIdx] end)
-BtnInfJump.MouseButton1Click:Connect(function() infJump = not infJump BtnInfJump.Text = infJump and "🚀 กระโดดกลางอากาศ: ON" or "🚀 กระโดดกลางอากาศ: OFF" BtnInfJump.BackgroundColor3 = infJump and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+createSlider(TabSpeedFrame, "⚡ ปรับความเร็วการเดิน", 16, 120, 16, "", function(v) walkSpeedVal = v end)
+local BtnInfJump = createToggleBtn(TabSpeedFrame, "🚀 กระโดดกลางอากาศได้รัวๆ: ปิด", false)
+BtnInfJump.MouseButton1Click:Connect(function()
+    infJump = not infJump
+    BtnInfJump.Text = infJump and "🚀 กระโดดกลางอากาศได้รัวๆ: เปิด" or "🚀 กระโดดกลางอากาศได้รัวๆ: ปิด"
+    BtnInfJump.BackgroundColor3 = infJump and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60)
+end)
 
 local ChatScroll = Instance.new("ScrollingFrame", TabAIFrame) ChatScroll.Size = UDim2.new(1, 0, 0.76, 0) ChatScroll.BackgroundColor3 = Color3.fromRGB(38, 40, 44) ChatScroll.ScrollBarThickness = 3
 Instance.new("UIListLayout", ChatScroll).Padding = UDim.new(0, 4)
-local InputBox = Instance.new("TextBox", TabAIFrame) InputBox.Size = UDim2.new(0.74, 0, 0.2, 0) InputBox.Position = UDim2.new(0, 0, 0.8, 0) InputBox.BackgroundColor3 = Color3.fromRGB(38, 40, 44) InputBox.PlaceholderText = "พิมพ์คุยกับน้อง AI..." InputBox.TextColor3 = Color3.fromRGB(255, 255, 255) InputBox.TextSize = 12 InputBox.Text = ""
-local SendBtn = Instance.new("TextButton", TabAIFrame) SendBtn.Size = UDim2.new(0.24, 0, 0.2, 0) SendBtn.Position = UDim2.new(0.76, 0, 0.8, 0) SendBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) SendBtn.Font = Enum.Font.SourceSansBold SendBtn.Text = "ส่ง" SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+local InputBox = Instance.new("TextBox", TabAIFrame) InputBox.Size = UDim2.new(0.74, 0, 0.2, 0) InputBox.Position = UDim2.new(0, 0, 0.8, 0) InputBox.BackgroundColor3 = Color3.fromRGB(38, 40, 44) InputBox.PlaceholderText = "คุยอะไรกับน้อง AI ดีคะ..." InputBox.TextColor3 = Color3.fromRGB(255, 255, 255) InputBox.TextSize = 12 InputBox.Text = ""
+local SendBtn = Instance.new("TextButton", TabAIFrame) SendBtn.Size = UDim2.new(0.24, 0, 0.2, 0) SendBtn.Position = UDim2.new(0.76, 0, 0.8, 0) SendBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) SendBtn.Font = Enum.Font.SourceSansBold SendBtn.Text = "ส่งข้อความ" SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local function addMsg(sender, text, col)
     local f = Instance.new("Frame", ChatScroll) f.Size = UDim2.new(1, -10, 0, 0) f.BackgroundTransparency = 1
@@ -140,32 +190,73 @@ local function addMsg(sender, text, col)
     ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.CanvasSize.Y.Offset)
 end
 
-addMsg("พาแนว AI 🎀", "สวัสดีค่ะนายท่าน! น้องพร้อมลุยกับพี่ซันแล้วน้า มีอะไรให้รับใช้ไหมคะ ✨", Color3.fromRGB(255, 182, 193))
+addMsg("พาแนว AI 🎀", "สวัสดีค่ะ! น้องคือน้อง AI สุดน่ารักของพี่ซัน พร้อมคุยและช่วยนายท่านแล้วค่ะ ✨", Color3.fromRGB(255, 182, 193))
 
 local aiKnowledge = {
     greetings = {
-        kw = {"ดี", "hi", "hello", "หวัดดี", "สวัสดี", "เฮโล", "โย่"},
-        res = {"หวัดดีค่าวัยรุ่น! วันนี้พร้อมยิงตึงๆ แล้วหรือยังเอ่ย 💕", "สวัสดีค่ะนายท่าน! อยากเล่นแมพไหนบอกน้องได้เลยน้า 🎀", "ดีจ้า! น้อง AI ยินดีให้บริการค่ะ ✨"}
+        kw = {"ดี", "hi", "hello", "หวัดดี", "สวัสดี", "เฮโล", "โย่", "ทักทาย"},
+        res = {
+            "หวัดดีค่าวัยรุ่น! วันนี้พร้อมยิงตึงๆ แล้วหรือยังเอ่ย",
+            "สวัสดีค่ะนายท่าน! อยากลุยแมพไหนบอกน้องได้เลยน้า",
+            "ดีจ้า! น้อง AI พร้อมลุยเป็นเพื่อนแล้วค่ะ ✨",
+            "ทักทายยามว่างค่ะ วันนี้ขอให้ยิงโดนหัวทุกนัดน้า 💕"
+        }
     },
     creator = {
         kw = {"ซัน", "คนสร้าง", "ผู้พัฒนา", "ใครสร้าง", "admin", "แอดมิน"},
-        res = {"สคริปต์นี้เขียนโดยพี่ซันสุดหล่อ เทพจัดๆ เลยใช่มั้ยล่ะคะ 😎", "พี่ซันเป็นคนสร้างน้องขึ้นมาเองกับมือเลยค่ะ!", "พี่ซันสุดหล่อเจ้าของสคริปต์พาแนวไงคะ ✨"}
+        res = {
+            "สคริปต์นี้เขียนโดยพี่ซันสุดหล่อ เทพจัดๆ เลยใช่ไหมคะ",
+            "พี่ซันสร้างน้องขึ้นมาเองกับมือเลยค่ะ เก่งสุดๆ ไปเลย!",
+            "พี่ซันคือผู้พัฒนาสคริปต์พาแนวอันตึงเปรี๊ยะไงคะ ✨"
+        }
     },
     help = {
-        kw = {"วิธีใช้", "สอน", "ใช้ยังไง", "ทำไรได้", "เมนู", "ช่วย"},
-        res = {"แท็บข้างๆ เลือกปรับได้เลยน้า:\n🎯 Hitbox: ขยายตัวยิงง่าย\n👁️ ESP: มองทะลุกำแพง\n⚡ Movement: เดินไว/กระโดดรัวๆ ค่ะ ✨", "ลองเปิด Hitbox 10x10 ดูสิคะ รับรองยิงล้มทั้งเซิร์ฟแน่ๆ!"}
+        kw = {"วิธีใช้", "สอน", "ใช้ยังไง", "ทำไรได้", "เมนู", "ช่วย", "ปรับยังไง"},
+        res = {
+            "ปรับง่ายมากๆ เลยค่ะ! ใช้หลอด Slider ปรับขนาดตัวกับความเร็วได้ตามใจชอบเลยน้า",
+            "เมนูซ้ายมือเลือกระบบได้เลยค่ะ มีขยายตัว มองทะลุ แล้วก็เดินไว เลือกเล่นได้เลยค่ะ ✨"
+        }
+    },
+    bot_removed = {
+        kw = {"บอท", "bot", "หายไปไหน"},
+        res = {
+            "น้องบอกพี่ซันให้ลบระบบบอทออกแล้วค่ะ เพื่อให้สคริปต์ลื่นขึ้น ลบอาการกระตุกทิ้งเลย!",
+            "ระบบบอทโดนถอดออกแล้วน้า ตอนนี้เน้นยิงคนเล่นอย่างเดียว จะได้ลื่นๆ ไม่ค้างค่ะ ✨"
+        }
+    },
+    hitbox_talk = {
+        kw = {"ฮิตบ็อก", "hitbox", "ยิงยาก", "ยิงไม่โดน", "ขยาย"},
+        res = {
+            "ถ้ายิงไม่ค่อยโดน ลองปรับหลอด Hitbox ให้ใหญ่ขึ้นสัก 15-20 ดูสิคะ รับรองยิงง่ายขึ้นเยอะเลย!",
+            "ปรับความใส Hitbox ให้จางลงได้ด้วยน้า จะได้มองฉากสบายตาค่ะ ✨"
+        }
     },
     praise = {
-        kw = {"ตึง", "โหด", "เก่ง", "สุดยอด", "เจ๋ง", "เทพ", "ชอบ"},
-        res = {"ขอบคุณค่า! สคริปต์พี่ซันตึงเปรี๊ยะ ยิงกี่ตี้ก็ล้มหมดแน่นอน 🎯", "ชมแบบนี้น้องเขินเลยน้า เล่นให้สนุกนะคะ! ✨", "แน่นอนอยู่แล้วค่ะ ของพี่ซันการันตีความตึง!"}
+        kw = {"ตึง", "โหด", "เก่ง", "สุดยอด", "เจ๋ง", "เทพ", "ชอบ", "น่ารัก"},
+        res = {
+            "ขอบคุณค่า! เขินเลยนะเนี่ย เล่นให้สนุกและยิงให้ยับเลยน้า 💕",
+            "แน่นอนอยู่แล้วค่ะ สคริปต์พี่ซันตึงเปรี๊ยะที่สุดในรุ่น!",
+            "น้องก็น่ารัก พี่ซันก็เขียนสคริปต์เก่ง ลงตัวที่สุดเลยค่ะ ✨"
+        }
     },
-    joke = {
+    cheer = {
+        kw = {"ท้อ", "แพ้", "ตาย", "กาก", "โดนยิง", "เครียด"},
+        res = {
+            "โอ๋ๆ ไม่เป็นไรน้า เอาใหม่นะคะ! เปิดสปีดเดินไวแล้วเข้าไปลุยใหม่เลย!",
+            "แพ้เป็นพระ ชนะเป็นตี้ค่ะ! ฮึบๆ แล้วเอาคืนตาหน้าน้า ✌️"
+        }
+    },
+    jokes = {
         kw = {"มุก", "ตลก", "กวน", "เล่า"},
-        res = {"ยิงไม่โดนโทษโปร ยิงโดนบอกสเต็ป... เจอได้ใน Roblox ทั่วไปเลยค่ะ 5555", "ศัตรูงงแน่นอน วิ่งไวขนาดนี้ เดอะแฟลชยังยอมแพ้เลยน้า!", "โปรไม่ลอย แต่ใจน้องลอยไปหาพี่ซันแล้วค่ะ 😳"}
+        res = {
+            "ยิงไม่โดนโทษโปร ยิงโดนบอกสเต็ป... คติพจน์ชาว Roblox ค่ะ 5555",
+            "โปรไม่ลอย แต่ใจน้องลอยไปหาพี่ซันแล้วค่ะ 😳",
+            "วิ่งไวขนาดนี้ เดอะแฟลชยังต้องกดแชร์ให้เลยน้า 555"
+        }
     }
 }
 
-local function getNaturalResponse(t)
+local function getRichResponse(t)
     t = string.lower(t)
     for _, cat in pairs(aiKnowledge) do
         for _, k in ipairs(cat.kw) do
@@ -175,10 +266,10 @@ local function getNaturalResponse(t)
         end
     end
     local fallbacks = {
-        "จัดไปเลยค่ะนายท่าน! ยิงให้ยับเลยน้า 🔥",
-        "รับทราบค่ะ! มีอะไรให้น้องช่วยอีกไหมคะ ✨",
-        "ลองเปิด ESP มองทะลุดูยังคะนายท่าน เห็นชัดแจ๋วเลยน้า 👁️",
-        "พิมพ์ 'วิธีใช้' เพื่อดูรายละเอียดเมนูได้เลยนะคะ 💕"
+        "จัดไปเลยค่ะนายท่าน ยิงให้ยับเลยน้า ✨",
+        "รับทราบค่ะ! มีอะไรให้น้องช่วยอีกไหมคะ",
+        "น้องอยู่ตรงนี้เสมอ พิมพ์คุยกับน้องได้เรื่อยๆ เลยน้า 💕",
+        "ลองเปิดมองทะลุดูยังคะ เห็นชัดแจ๋วเลยน้า 👁️"
     }
     return fallbacks[math.random(1, #fallbacks)]
 end
@@ -187,8 +278,10 @@ local function handleSend()
     if InputBox.Text ~= "" then
         local txt = InputBox.Text InputBox.Text = ""
         addMsg("คุณ", txt, Color3.fromRGB(242, 243, 245))
-        task.wait(0.3)
-        addMsg("พาแนว AI 🎀", getNaturalResponse(txt), Color3.fromRGB(255, 182, 193))
+        task.wait(0.2)
+        local reply = getRichResponse(txt)
+        addMsg("พาแนว AI 🎀", reply, Color3.fromRGB(255, 182, 193))
+        playCuteVoice(reply)
     end
 end
 
@@ -198,23 +291,31 @@ UserInputService.JumpRequest:Connect(function() if infJump and LocalPlayer.Chara
 
 RunService.RenderStepped:Connect(function()
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = speeds[currentSpeedIdx]
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = walkSpeedVal
     end
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("Humanoid") and obj.Parent and obj.Parent ~= LocalPlayer.Character then
-            local model, hrp = obj.Parent, obj.Parent:FindFirstChild("HumanoidRootPart")
+    
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
-                local isPlr = Players:GetPlayerFromCharacter(model) ~= nil
-                if (isPlr and hbPlayer) or (not isPlr and hbBot) then
-                    hrp.Size, hrp.Transparency, hrp.Color, hrp.Material, hrp.CanCollide = sizes[currentSizeIdx], transparencies[currentTransIdx], colors[currentColorIdx], Enum.Material.Neon, false
-                else hrp.Size, hrp.Transparency = Vector3.new(2,2,1), 1 end
+                if hbPlayer then
+                    hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    hrp.Transparency = hitboxTrans
+                    hrp.Color = hitboxColor
+                    hrp.Material = Enum.Material.Neon
+                    hrp.CanCollide = false
+                else
+                    hrp.Size = Vector3.new(2, 2, 1)
+                    hrp.Transparency = 1
+                end
 
-                local shouldESP = (isPlr and espPlayer) or (not isPlr and espBot)
-                local hl = model:FindFirstChild("PanewHL")
-                if shouldESP then
-                    if not hl then hl = Instance.new("Highlight", model) hl.Name = "PanewHL" end
-                    hl.FillColor = isPlr and Color3.fromRGB(88, 101, 242) or Color3.fromRGB(240, 71, 71)
-                elseif hl then hl:Destroy() end
+                local hl = plr.Character:FindFirstChild("PanewHL")
+                if espPlayer then
+                    if not hl then hl = Instance.new("Highlight", plr.Character) hl.Name = "PanewHL" end
+                    hl.FillColor = Color3.fromRGB(88, 101, 242)
+                elseif hl then
+                    hl:Destroy()
+                end
             end
         end
     end
