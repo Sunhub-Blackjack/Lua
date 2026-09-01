@@ -1,0 +1,221 @@
+local Players,RunService,UserInputService,TextService,HttpService = game:GetService("Players"),game:GetService("RunService"),game:GetService("UserInputService"),game:GetService("TextService"),game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+local parentGui = gethui and gethui() or (pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui"))
+if parentGui:FindFirstChild("PanewDiscordUltimate") then parentGui.PanewDiscordUltimate:Destroy() end
+
+-- ระบบเสียง AI ผู้หญิงพูดตอนเปิดสคริปต์
+task.spawn(function()
+    pcall(function()
+        local text = "คุณได้รันสคริปซันแล้วขอให้สนุก"
+        local encodedText = HttpService:UrlEncode(text)
+        local ttsUrl = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" .. encodedText
+        local fileName = "SunScript_Voice_TH.mp3"
+        
+        if writefile and getcustomasset then
+            if not isfile(fileName) then
+                writefile(fileName, game:HttpGet(ttsUrl))
+            end
+            local sound = Instance.new("Sound")
+            sound.SoundId = getcustomasset(fileName)
+            sound.Volume = 3
+            sound.Parent = game:GetService("SoundService")
+            sound:Play()
+            sound.Ended:Connect(function() sound:Destroy() end)
+        end
+    end)
+end)
+
+local ScreenGui = Instance.new("ScreenGui", parentGui) ScreenGui.Name = "PanewDiscordUltimate" ScreenGui.ResetOnSpawn = false
+
+local function makeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging, dragStart, startPos = true, input.Position, gui.Position
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input) if input == dragInput then dragging = false end end)
+end
+
+local PButton = Instance.new("TextButton", ScreenGui) PButton.Size = UDim2.new(0, 50, 0, 50) PButton.Position = UDim2.new(0.04, 0, 0.18, 0) PButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242) PButton.Font = Enum.Font.SourceSansBold PButton.Text = "P" PButton.TextColor3 = Color3.fromRGB(255, 255, 255) PButton.TextSize = 24
+Instance.new("UICorner", PButton).CornerRadius = UDim.new(1, 0) makeDraggable(PButton)
+
+local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 420, 0, 300) MainFrame.Position = UDim2.new(0.25, 0, 0.2, 0) MainFrame.BackgroundColor3 = Color3.fromRGB(49, 51, 56)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10) makeDraggable(MainFrame)
+
+local Header = Instance.new("Frame", MainFrame) Header.Size = UDim2.new(1, 0, 0, 36) Header.BackgroundColor3 = Color3.fromRGB(35, 36, 40)
+local TitleText = Instance.new("TextLabel", Header) TitleText.Size = UDim2.new(1, -10, 1, 0) TitleText.Position = UDim2.new(0, 10, 0, 0) TitleText.BackgroundTransparency = 1 TitleText.Font = Enum.Font.SourceSansBold TitleText.Text = "พาแนว ยิงตึงๆ | By: ซัน 💬" TitleText.TextColor3 = Color3.fromRGB(255, 255, 255) TitleText.TextSize = 15 TitleText.TextXAlignment = Enum.TextXAlignment.Left
+
+local Sidebar = Instance.new("Frame", MainFrame) Sidebar.Size = UDim2.new(0, 120, 1, -36) Sidebar.Position = UDim2.new(0, 0, 0, 36) Sidebar.BackgroundColor3 = Color3.fromRGB(43, 45, 49)
+local SideList = Instance.new("UIListLayout", Sidebar) SideList.Padding = UDim.new(0, 4)
+
+local ContentArea = Instance.new("Frame", MainFrame) ContentArea.Size = UDim2.new(1, -130, 1, -44) ContentArea.Position = UDim2.new(0, 125, 0, 40) ContentArea.BackgroundTransparency = 1
+
+local function createTabContainer()
+    local frame = Instance.new("ScrollingFrame", ContentArea) frame.Size = UDim2.new(1, 0, 1, 0) frame.BackgroundTransparency = 1 frame.ScrollBarThickness = 3 frame.Visible = false
+    local layout = Instance.new("UIListLayout", frame) layout.Padding = UDim.new(0, 6)
+    return frame
+end
+
+local TabHitboxFrame, TabESPFrame, TabSpeedFrame = createTabContainer(), createTabContainer(), createTabContainer()
+local TabAIFrame = Instance.new("Frame", ContentArea) TabAIFrame.Size = UDim2.new(1, 0, 1, 0) TabAIFrame.BackgroundTransparency = 1 TabAIFrame.Visible = false
+TabHitboxFrame.Visible = true
+
+local function createChannel(name, id)
+    local btn = Instance.new("TextButton", Sidebar) btn.Size = UDim2.new(1, -8, 0, 30) btn.BackgroundColor3 = (id == 1) and Color3.fromRGB(58, 60, 66) or Color3.fromRGB(43, 45, 49) btn.Font = Enum.Font.SourceSansBold btn.Text = "# " .. name btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 12 btn.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 8)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    return btn
+end
+
+local channels = {createChannel("hitbox-ระบบ", 1), createChannel("esp-มองทะลุ", 2), createChannel("movement-เดินไว", 3), createChannel("ai-เพื่อนคุย", 4)}
+local frames = {TabHitboxFrame, TabESPFrame, TabSpeedFrame, TabAIFrame}
+
+for i, btn in ipairs(channels) do
+    btn.MouseButton1Click:Connect(function()
+        for j, c in ipairs(channels) do
+            c.BackgroundColor3 = (j == i) and Color3.fromRGB(58, 60, 66) or Color3.fromRGB(43, 45, 49)
+            frames[j].Visible = (j == i)
+        end
+    end)
+end
+
+local function createOptionBtn(parent, text, initialOn)
+    local btn = Instance.new("TextButton", parent) btn.Size = UDim2.new(0.96, 0, 0, 34) btn.BackgroundColor3 = initialOn and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) btn.Font = Enum.Font.SourceSansBold btn.Text = text btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 12
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    return btn
+end
+
+local hbPlayer, hbBot, espPlayer, espBot, espInfo, infJump = false, false, false, false, false, false
+local sizes, sizeNames, currentSizeIdx = {Vector3.new(5,5,5), Vector3.new(10,10,10), Vector3.new(20,20,20)}, {"เล็ก (5x5)", "กลาง (10x10)", "ใหญ่ตึงๆ (20x20)"}, 2
+local transparencies, transNames, currentTransIdx = {0.3, 0.6, 0.9, 1.0}, {"เห็นชัด (0.3)", "ปานกลาง (0.6)", "จางๆ (0.9)", "ล่องหน (1.0)"}, 2
+local colors, colorNames, currentColorIdx = {Color3.fromRGB(88, 101, 242), Color3.fromRGB(240, 71, 71), Color3.fromRGB(35, 165, 90)}, {"สีฟ้า", "สีแดง", "สีเขียว"}, 1
+local speeds, speedNames, currentSpeedIdx = {16, 32, 60, 100}, {"ปกติ (16)", "เร็ว (32)", "โคตรไว (60)", "เดอะแฟลช (100)"}, 1
+
+local BtnHBPlayer = createOptionBtn(TabHitboxFrame, "🎯 Hitbox Player: OFF", false)
+local BtnHBBot = createOptionBtn(TabHitboxFrame, "🤖 Hitbox Bot: OFF", false)
+local BtnHBSize = createOptionBtn(TabHitboxFrame, "📐 ขนาด Hitbox: กลาง (10x10)", true) BtnHBSize.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
+local BtnHBTrans = createOptionBtn(TabHitboxFrame, "👁️ ความใส Hitbox: ปานกลาง (0.6)", true) BtnHBTrans.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
+local BtnHBColor = createOptionBtn(TabHitboxFrame, "🎨 สี Hitbox: สีฟ้า", true) BtnHBColor.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
+
+local BtnESPPlayer = createOptionBtn(TabESPFrame, "👁️ ESP Player: OFF", false)
+local BtnESPBot = createOptionBtn(TabESPFrame, "👁️ ESP Bot: OFF", false)
+local BtnESPInfo = createOptionBtn(TabESPFrame, "🏷️ ESP ป้ายชื่อ + ระยะ: OFF", false)
+
+local BtnSpeed = createOptionBtn(TabSpeedFrame, "⚡ ความเร็วเดิน: ปกติ (16)", true) BtnSpeed.BackgroundColor3 = Color3.fromRGB(58, 60, 66)
+local BtnInfJump = createOptionBtn(TabSpeedFrame, "🚀 กระโดดกลางอากาศ: OFF", false)
+
+BtnHBPlayer.MouseButton1Click:Connect(function() hbPlayer = not hbPlayer BtnHBPlayer.Text = hbPlayer and "🎯 Hitbox Player: ON" or "🎯 Hitbox Player: OFF" BtnHBPlayer.BackgroundColor3 = hbPlayer and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+BtnHBBot.MouseButton1Click:Connect(function() hbBot = not hbBot BtnHBBot.Text = hbBot and "🤖 Hitbox Bot: ON" or "🤖 Hitbox Bot: OFF" BtnHBBot.BackgroundColor3 = hbBot and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+BtnHBSize.MouseButton1Click:Connect(function() currentSizeIdx = (currentSizeIdx % #sizes) + 1 BtnHBSize.Text = "📐 ขนาด Hitbox: " .. sizeNames[currentSizeIdx] end)
+BtnHBTrans.MouseButton1Click:Connect(function() currentTransIdx = (currentTransIdx % #transparencies) + 1 BtnHBTrans.Text = "👁️ ความใส Hitbox: " .. transNames[currentTransIdx] end)
+BtnHBColor.MouseButton1Click:Connect(function() currentColorIdx = (currentColorIdx % #colors) + 1 BtnHBColor.Text = "🎨 สี Hitbox: " .. colorNames[currentColorIdx] end)
+
+BtnESPPlayer.MouseButton1Click:Connect(function() espPlayer = not espPlayer BtnESPPlayer.Text = espPlayer and "👁️ ESP Player: ON" or "👁️ ESP Player: OFF" BtnESPPlayer.BackgroundColor3 = espPlayer and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+BtnESPBot.MouseButton1Click:Connect(function() espBot = not espBot BtnESPBot.Text = espBot and "👁️ ESP Bot: ON" or "👁️ ESP Bot: OFF" BtnESPBot.BackgroundColor3 = espBot and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+BtnESPInfo.MouseButton1Click:Connect(function() espInfo = not espInfo BtnESPInfo.Text = espInfo and "🏷️ ESP ป้ายชื่อ + ระยะ: ON" or "🏷️ ESP ป้ายชื่อ + ระยะ: OFF" BtnESPInfo.BackgroundColor3 = espInfo and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+BtnSpeed.MouseButton1Click:Connect(function() currentSpeedIdx = (currentSpeedIdx % #speeds) + 1 BtnSpeed.Text = "⚡ ความเร็วเดิน: " .. speedNames[currentSpeedIdx] end)
+BtnInfJump.MouseButton1Click:Connect(function() infJump = not infJump BtnInfJump.Text = infJump and "🚀 กระโดดกลางอากาศ: ON" or "🚀 กระโดดกลางอากาศ: OFF" BtnInfJump.BackgroundColor3 = infJump and Color3.fromRGB(35, 165, 90) or Color3.fromRGB(218, 55, 60) end)
+
+local ChatScroll = Instance.new("ScrollingFrame", TabAIFrame) ChatScroll.Size = UDim2.new(1, 0, 0.76, 0) ChatScroll.BackgroundColor3 = Color3.fromRGB(38, 40, 44) ChatScroll.ScrollBarThickness = 3
+Instance.new("UIListLayout", ChatScroll).Padding = UDim.new(0, 4)
+local InputBox = Instance.new("TextBox", TabAIFrame) InputBox.Size = UDim2.new(0.74, 0, 0.2, 0) InputBox.Position = UDim2.new(0, 0, 0.8, 0) InputBox.BackgroundColor3 = Color3.fromRGB(38, 40, 44) InputBox.PlaceholderText = "พิมพ์คุยกับน้อง AI..." InputBox.TextColor3 = Color3.fromRGB(255, 255, 255) InputBox.TextSize = 12 InputBox.Text = ""
+local SendBtn = Instance.new("TextButton", TabAIFrame) SendBtn.Size = UDim2.new(0.24, 0, 0.2, 0) SendBtn.Position = UDim2.new(0.76, 0, 0.8, 0) SendBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) SendBtn.Font = Enum.Font.SourceSansBold SendBtn.Text = "ส่ง" SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local function addMsg(sender, text, col)
+    local f = Instance.new("Frame", ChatScroll) f.Size = UDim2.new(1, -10, 0, 0) f.BackgroundTransparency = 1
+    local l = Instance.new("TextLabel", f) l.Size = UDim2.new(1, 0, 1, 0) l.BackgroundTransparency = 1 l.Text = "[" .. sender .. "]: " .. text l.TextColor3 = col l.TextSize = 12 l.TextWrapped = true l.TextXAlignment = Enum.TextXAlignment.Left
+    local h = TextService:GetTextSize(l.Text, 12, Enum.Font.SourceSans, Vector2.new(ChatScroll.AbsoluteSize.X - 10, 2000)).Y
+    f.Size = UDim2.new(1, -10, 0, h + 4)
+    ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatScroll.UIListLayout.AbsoluteContentSize.Y + 10)
+    ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.CanvasSize.Y.Offset)
+end
+
+addMsg("พาแนว AI 🎀", "สวัสดีค่ะนายท่าน! น้องพร้อมลุยกับพี่ซันแล้วน้า มีอะไรให้รับใช้ไหมคะ ✨", Color3.fromRGB(255, 182, 193))
+
+local aiKnowledge = {
+    greetings = {
+        kw = {"ดี", "hi", "hello", "หวัดดี", "สวัสดี", "เฮโล", "โย่"},
+        res = {"หวัดดีค่าวัยรุ่น! วันนี้พร้อมยิงตึงๆ แล้วหรือยังเอ่ย 💕", "สวัสดีค่ะนายท่าน! อยากเล่นแมพไหนบอกน้องได้เลยน้า 🎀", "ดีจ้า! น้อง AI ยินดีให้บริการค่ะ ✨"}
+    },
+    creator = {
+        kw = {"ซัน", "คนสร้าง", "ผู้พัฒนา", "ใครสร้าง", "admin", "แอดมิน"},
+        res = {"สคริปต์นี้เขียนโดยพี่ซันสุดหล่อ เทพจัดๆ เลยใช่มั้ยล่ะคะ 😎", "พี่ซันเป็นคนสร้างน้องขึ้นมาเองกับมือเลยค่ะ!", "พี่ซันสุดหล่อเจ้าของสคริปต์พาแนวไงคะ ✨"}
+    },
+    help = {
+        kw = {"วิธีใช้", "สอน", "ใช้ยังไง", "ทำไรได้", "เมนู", "ช่วย"},
+        res = {"แท็บข้างๆ เลือกปรับได้เลยน้า:\n🎯 Hitbox: ขยายตัวยิงง่าย\n👁️ ESP: มองทะลุกำแพง\n⚡ Movement: เดินไว/กระโดดรัวๆ ค่ะ ✨", "ลองเปิด Hitbox 10x10 ดูสิคะ รับรองยิงล้มทั้งเซิร์ฟแน่ๆ!"}
+    },
+    praise = {
+        kw = {"ตึง", "โหด", "เก่ง", "สุดยอด", "เจ๋ง", "เทพ", "ชอบ"},
+        res = {"ขอบคุณค่า! สคริปต์พี่ซันตึงเปรี๊ยะ ยิงกี่ตี้ก็ล้มหมดแน่นอน 🎯", "ชมแบบนี้น้องเขินเลยน้า เล่นให้สนุกนะคะ! ✨", "แน่นอนอยู่แล้วค่ะ ของพี่ซันการันตีความตึง!"}
+    },
+    joke = {
+        kw = {"มุก", "ตลก", "กวน", "เล่า"},
+        res = {"ยิงไม่โดนโทษโปร ยิงโดนบอกสเต็ป... เจอได้ใน Roblox ทั่วไปเลยค่ะ 5555", "ศัตรูงงแน่นอน วิ่งไวขนาดนี้ เดอะแฟลชยังยอมแพ้เลยน้า!", "โปรไม่ลอย แต่ใจน้องลอยไปหาพี่ซันแล้วค่ะ 😳"}
+    }
+}
+
+local function getNaturalResponse(t)
+    t = string.lower(t)
+    for _, cat in pairs(aiKnowledge) do
+        for _, k in ipairs(cat.kw) do
+            if string.find(t, k) then
+                return cat.res[math.random(1, #cat.res)]
+            end
+        end
+    end
+    local fallbacks = {
+        "จัดไปเลยค่ะนายท่าน! ยิงให้ยับเลยน้า 🔥",
+        "รับทราบค่ะ! มีอะไรให้น้องช่วยอีกไหมคะ ✨",
+        "ลองเปิด ESP มองทะลุดูยังคะนายท่าน เห็นชัดแจ๋วเลยน้า 👁️",
+        "พิมพ์ 'วิธีใช้' เพื่อดูรายละเอียดเมนูได้เลยนะคะ 💕"
+    }
+    return fallbacks[math.random(1, #fallbacks)]
+end
+
+local function handleSend()
+    if InputBox.Text ~= "" then
+        local txt = InputBox.Text InputBox.Text = ""
+        addMsg("คุณ", txt, Color3.fromRGB(242, 243, 245))
+        task.wait(0.3)
+        addMsg("พาแนว AI 🎀", getNaturalResponse(txt), Color3.fromRGB(255, 182, 193))
+    end
+end
+
+SendBtn.MouseButton1Click:Connect(handleSend)
+PButton.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+UserInputService.JumpRequest:Connect(function() if infJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping) end end)
+
+RunService.RenderStepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = speeds[currentSpeedIdx]
+    end
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Humanoid") and obj.Parent and obj.Parent ~= LocalPlayer.Character then
+            local model, hrp = obj.Parent, obj.Parent:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local isPlr = Players:GetPlayerFromCharacter(model) ~= nil
+                if (isPlr and hbPlayer) or (not isPlr and hbBot) then
+                    hrp.Size, hrp.Transparency, hrp.Color, hrp.Material, hrp.CanCollide = sizes[currentSizeIdx], transparencies[currentTransIdx], colors[currentColorIdx], Enum.Material.Neon, false
+                else hrp.Size, hrp.Transparency = Vector3.new(2,2,1), 1 end
+
+                local shouldESP = (isPlr and espPlayer) or (not isPlr and espBot)
+                local hl = model:FindFirstChild("PanewHL")
+                if shouldESP then
+                    if not hl then hl = Instance.new("Highlight", model) hl.Name = "PanewHL" end
+                    hl.FillColor = isPlr and Color3.fromRGB(88, 101, 242) or Color3.fromRGB(240, 71, 71)
+                elseif hl then hl:Destroy() end
+            end
+        end
+    end
+end)
