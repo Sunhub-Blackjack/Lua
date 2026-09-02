@@ -1,6 +1,7 @@
 -- =================================================================
--- SCRIPT 1: พาแนว ยิงตัวโหดๆ (By ซัน) [MAIN SCRIPT]
--- ธีม: สีแดง-ดำ | รองรับมือถือ & PC | ฝังระบบควบคุมลับ
+-- SCRIPT 1: พาแนว ยิงตัวโหดๆ (Discord Theme V.3 By ซัน)
+-- THEME: DISCORD (Blurple & Dark Charcoal) | MOBILE & PC SUPPORT
+-- UPDATES: Fixed Hitbox Toggle, Advanced Aimbot, Clean Tabbed UI
 -- =================================================================
 
 local CoreGui = game:GetService("CoreGui")
@@ -11,16 +12,19 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 -- ลบ UI เก่าหากมีอยู่
-if CoreGui:FindFirstChild("PaNaewYingTodMain") then
-    CoreGui.PaNaewYingTodMain:Destroy()
+if CoreGui:FindFirstChild("PaNaewDiscordUI") then
+    CoreGui.PaNaewDiscordUI:Destroy()
 end
 
--- 변수 설정 (ตัวแปรระบบ)
+-- ==========================================
+-- ⚙️ SYSTEM VARIABLES
+-- ==========================================
 _G.HitboxEnabled = false
-_G.HitboxSize = 12
-_G.AimboxEnabled = false
-_G.AimFov = 150
+_G.HitboxSize = 14
+_G.AimbotEnabled = false
+_G.AimFov = 180
 local ScriptActive = true
+local OriginalSizes = {}
 
 -- ==========================================
 -- 🔊 SWEET NOTIFICATION & VOICE SOUND
@@ -33,7 +37,7 @@ local SweetMessages = {
 }
 
 local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://9114223177" -- เสียงหวาน/แจ้งเตือนน่ารัก
+sound.SoundId = "rbxassetid://9114223177" -- เสียงหวานน่ารัก Tone พอดีๆ
 sound.Volume = 2
 sound.Parent = workspace
 sound:Play()
@@ -45,22 +49,22 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 })
 
 -- ==========================================
--- 🎨 UI CREATION (RED & BLACK THEME)
+-- 🎨 DISCORD THEME UI CREATION
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "PaNaewYingTodMain"
+ScreenGui.Name = "PaNaewDiscordUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- ปุ่ม Floating เปิด-ปิด (สำหรับมือถือ 🔫)
+-- ปุ่ม Floating เปิด-ปิด สำหรับมือถือ (🔫)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "MobileToggle"
 ToggleBtn.Parent = ScreenGui
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- Discord Blurple
 ToggleBtn.Position = UDim2.new(0.04, 0, 0.25, 0)
-ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Size = UDim2.new(0, 52, 0, 52)
 ToggleBtn.Text = "🔫"
-ToggleBtn.TextSize = 25
+ToggleBtn.TextSize = 26
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Active = true
 ToggleBtn.Draggable = true
@@ -69,60 +73,121 @@ local ToggleCorner = Instance.new("UICorner")
 ToggleCorner.CornerRadius = UDim.new(0.5, 0)
 ToggleCorner.Parent = ToggleBtn
 
--- หน้าต่างหลัก (Main Frame)
+-- Main Frame (ธีม Discord Dark Mode)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.BorderColor3 = Color3.fromRGB(220, 0, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(47, 49, 54) -- Discord Dark Gray
+MainFrame.BorderColor3 = Color3.fromRGB(88, 101, 242)
 MainFrame.BorderSizePixel = 2
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 360, 0, 350)
+MainFrame.Size = UDim2.new(0, 410, 0, 370)
 MainFrame.Active = true
-MainFrame.Draggable = true -- ลากไปมาได้
+MainFrame.Draggable = true
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
--- Top Bar
+-- Top Bar (หัวข้อสคริปต์)
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Parent = MainFrame
-TitleLabel.Size = UDim2.new(1, 0, 0, 38)
-TitleLabel.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-TitleLabel.Text = "พาแนว ยิงตัวโหดๆ | By ซัน 🔫"
+TitleLabel.Size = UDim2.new(1, 0, 0, 42)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
+TitleLabel.Text = "  💬 พาแนว ยิงตัวโหดๆ | By ซัน 🔫"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 local TitleCorner = Instance.new("UICorner")
 TitleCorner.CornerRadius = UDim.new(0, 10)
 TitleCorner.Parent = TitleLabel
 
-local Container = Instance.new("ScrollingFrame")
-Container.Parent = MainFrame
-Container.Position = UDim2.new(0, 10, 0, 48)
-Container.Size = UDim2.new(1, -20, 1, -58)
-Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 380)
-Container.ScrollBarThickness = 4
+-- Tab Navigation Container
+local TabContainer = Instance.new("Frame")
+TabContainer.Parent = MainFrame
+TabContainer.Position = UDim2.new(0, 10, 0, 48)
+TabContainer.Size = UDim2.new(1, -20, 0, 32)
+TabContainer.BackgroundTransparency = 1
 
-local UIList = Instance.new("UIListLayout")
-UIList.Parent = Container
-UIList.SortOrder = Enum.SortOrder.LayoutOrder
-UIList.Padding = UDim.new(0, 8)
+local TabList = Instance.new("UIListLayout")
+TabList.Parent = TabContainer
+TabList.FillDirection = Enum.FillDirection.Horizontal
+TabList.Padding = UDim.new(0, 6)
 
-local function CreateButton(text, callback)
+-- Page Container
+local PageFolder = Instance.new("Folder")
+PageFolder.Name = "Pages"
+PageFolder.Parent = MainFrame
+
+local function CreateTab(name)
+    local page = Instance.new("ScrollingFrame")
+    page.Name = name .. "Page"
+    page.Parent = PageFolder
+    page.Position = UDim2.new(0, 10, 0, 86)
+    page.Size = UDim2.new(1, -20, 1, -96)
+    page.BackgroundTransparency = 1
+    page.Visible = false
+    page.CanvasSize = UDim2.new(0, 0, 0, 380)
+    page.ScrollBarThickness = 4
+
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = page
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 8)
+
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Parent = TabContainer
+    tabBtn.Size = UDim2.new(0.32, 0, 1, 0)
+    tabBtn.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
+    tabBtn.Text = name
+    tabBtn.TextColor3 = Color3.fromRGB(185, 187, 190)
+    tabBtn.Font = Enum.Font.SourceSansBold
+    tabBtn.TextSize = 13
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = tabBtn
+
+    tabBtn.MouseButton1Click:Connect(function()
+        for _, p in pairs(PageFolder:GetChildren()) do p.Visible = false end
+        for _, b in pairs(TabContainer:GetChildren()) do
+            if b:IsA("TextButton") then
+                b.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
+                b.TextColor3 = Color3.fromRGB(185, 187, 190)
+            end
+        end
+        page.Visible = true
+        tabBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- Discord Blurple Active
+        tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+
+    return page, tabBtn
+end
+
+-- สร้างหน้าแท็บต่างๆ
+local PageCombat, TabBtn1 = CreateTab("🎯 สายยิง (Combat)")
+local PageAi, TabBtn2 = CreateTab("🤖 AI ผู้ช่วย")
+local PageInfo, TabBtn3 = CreateTab("ℹ️ ข้อมูลระบบ")
+
+-- แสดงแท็บแรกเป็นค่าเริ่มต้น
+PageCombat.Visible = true
+TabBtn1.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+TabBtn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Helper Functions
+local function AddButton(parent, text, callback)
     local btn = Instance.new("TextButton")
-    btn.Parent = Container
-    btn.Size = UDim2.new(1, 0, 0, 35)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    btn.BorderColor3 = Color3.fromRGB(180, 0, 0)
+    btn.Parent = parent
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(54, 57, 63) -- Discord Card Theme
+    btn.BorderColor3 = Color3.fromRGB(88, 101, 242)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansSemibold
     btn.TextSize = 14
-    
+
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, 6)
     c.Parent = btn
@@ -131,13 +196,13 @@ local function CreateButton(text, callback)
     return btn
 end
 
-local function CreateLabel(text, color)
+local function AddLabel(parent, text, color)
     local lbl = Instance.new("TextLabel")
-    lbl.Parent = Container
+    lbl.Parent = parent
     lbl.Size = UDim2.new(1, 0, 0, 22)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
-    lbl.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+    lbl.TextColor3 = color or Color3.fromRGB(185, 187, 190)
     lbl.Font = Enum.Font.SourceSans
     lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -145,61 +210,131 @@ local function CreateLabel(text, color)
 end
 
 -- ==========================================
--- ⚙️ FEATURES (ระบบต่อสู้)
+-- 🎯 TAB 1: COMBAT SYSTEM (HITBOX & AIMBOT)
 -- ==========================================
-CreateLabel("--- ระบบการต่อสู้ & ล็อกเป้า ---", Color3.fromRGB(255, 50, 50))
+AddLabel(PageCombat, "--- ระบบขยายขนาดตัว & ล็อกเป้า ---", Color3.fromRGB(88, 101, 242))
 
-CreateButton("เปิด Hitbox Expander: [ OFF ]", function(btn)
+-- Hitbox Expander Toggle Button
+local HitboxBtn = AddButton(PageCombat, "เปิด Hitbox Expander: [ OFF ]", function(btn)
     _G.HitboxEnabled = not _G.HitboxEnabled
     if _G.HitboxEnabled then
-        btn.Text = "เปิด Hitbox Expander: [ ON 🔴 ]"
-        btn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+        btn.Text = "เปิด Hitbox Expander: [ ON 🟢 ]"
+        btn.BackgroundColor3 = Color3.fromRGB(67, 181, 129) -- Discord Green
     else
-        btn.Text = "เปิด Hitbox Expander: [ OFF ]"
-        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        btn.Text = "เปิด Hitbox Expander: [ OFF 🔴 ]"
+        btn.BackgroundColor3 = Color3.fromRGB(54, 57, 63)
+        -- ล้างค่าขนาดตัวศัตรูกลับเป็นปกติเมื่อกดปิด
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                pcall(function()
+                    v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                    v.Character.HumanoidRootPart.Transparency = 1
+                end)
+            end
+        end
     end
 end)
 
-CreateButton("ระบบ Aimbox ล็อกหัว: [ OFF ]", function(btn)
-    _G.AimboxEnabled = not _G.AimboxEnabled
-    if _G.AimboxEnabled then
-        btn.Text = "ระบบ Aimbox ล็อกหัว: [ ON 🔴 ]"
-        btn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+-- Aimbot Lock Toggle Button
+local AimbotBtn = AddButton(PageCombat, "เปิด Aimbot ล็อกเป้าอัตโนมัติ: [ OFF ]", function(btn)
+    _G.AimbotEnabled = not _G.AimbotEnabled
+    if _G.AimbotEnabled then
+        btn.Text = "เปิด Aimbot ล็อกเป้าอัตโนมัติ: [ ON 🟢 ]"
+        btn.BackgroundColor3 = Color3.fromRGB(67, 181, 129)
     else
-        btn.Text = "ระบบ Aimbox ล็อกหัว: [ OFF ]"
-        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        btn.Text = "เปิด Aimbot ล็อกเป้าอัตโนมัติ: [ OFF 🔴 ]"
+        btn.BackgroundColor3 = Color3.fromRGB(54, 57, 63)
     end
 end)
 
-CreateLabel("--- AI แนะนำวิธีใช้งาน ---", Color3.fromRGB(255, 50, 50))
+-- ==========================================
+-- 🤖 TAB 2: AI ASSISTANT & CHAT
+-- ==========================================
+AddLabel(PageAi, "💬 ระบบพูดคุย & แนะนำวิธีเล่นจาก AI Sun", Color3.fromRGB(88, 101, 242))
 
--- AI Guide Box
-local AiBox = Instance.new("Frame")
-AiBox.Parent = Container
-AiBox.Size = UDim2.new(1, 0, 0, 110)
-AiBox.BackgroundColor3 = Color3.fromRGB(25, 10, 10)
-AiBox.BorderColor3 = Color3.fromRGB(180, 0, 0)
+local ChatLog = Instance.new("ScrollingFrame")
+ChatLog.Parent = PageAi
+ChatLog.Size = UDim2.new(1, 0, 0, 140)
+ChatLog.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
+ChatLog.CanvasSize = UDim2.new(0, 0, 0, 500)
 
-local AiCorner = Instance.new("UICorner")
-AiCorner.CornerRadius = UDim.new(0, 6)
-AiCorner.Parent = AiBox
+local ChatLogCorner = Instance.new("UICorner")
+ChatLogCorner.CornerRadius = UDim.new(0, 6)
+ChatLogCorner.Parent = ChatLog
 
-local AiText = Instance.new("TextLabel")
-AiText.Parent = AiBox
-AiText.Position = UDim2.new(0, 8, 0, 5)
-AiText.Size = UDim2.new(1, -16, 1, -10)
-AiText.BackgroundTransparency = 1
-AiText.Text = "🤖 [AI Sun Assistant]:\n• วิธีใช้ Hitbox: กดเปิดเพื่อขยายตัวศัตรู ทำให้ยิงโดนง่ายขึ้น!\n• วิธีใช้ Aimbox: เปิดระบบแล้วหันหน้าไปหาเป้าหมาย เป้าจะล็อกให้อัตโนมัติ\n• ปุ่มปิด/เปิด: กดปุ่ม 🔫 หรือกดปุ่ม P บนคีย์บอร์ด"
-AiText.TextColor3 = Color3.fromRGB(230, 230, 230)
-AiText.Font = Enum.Font.SourceSans
-AiText.TextSize = 12
-AiText.TextXAlignment = Enum.TextXAlignment.Left
-AiText.TextYAlignment = Enum.TextYAlignment.Top
-AiText.TextWrapped = true
+local ChatList = Instance.new("UIListLayout")
+ChatList.Parent = ChatLog
+ChatList.Padding = UDim.new(0, 4)
+
+local InputBox = Instance.new("TextBox")
+InputBox.Parent = PageAi
+InputBox.Size = UDim2.new(0.72, 0, 0, 35)
+InputBox.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
+InputBox.PlaceholderText = "ถาม AI เกี่ยวกับวิธีใช้..."
+InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+InputBox.Text = ""
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 6)
+InputCorner.Parent = InputBox
+
+local SendBtn = Instance.new("TextButton")
+SendBtn.Parent = PageAi
+SendBtn.Position = UDim2.new(0.75, 0, 0, 0)
+SendBtn.Size = UDim2.new(0.25, 0, 0, 35)
+SendBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+SendBtn.Text = "ส่ง 🚀"
+SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local SendCorner = Instance.new("UICorner")
+SendCorner.CornerRadius = UDim.new(0, 6)
+SendCorner.Parent = SendBtn
+
+local function AddChatMessage(sender, msg, color)
+    local msgLbl = Instance.new("TextLabel")
+    msgLbl.Parent = ChatLog
+    msgLbl.Size = UDim2.new(1, -10, 0, 26)
+    msgLbl.BackgroundTransparency = 1
+    msgLbl.Text = "  [" .. sender .. "]: " .. msg
+    msgLbl.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+    msgLbl.Font = Enum.Font.SourceSans
+    msgLbl.TextSize = 13
+    msgLbl.TextXAlignment = Enum.TextXAlignment.Left
+    msgLbl.TextWrapped = true
+end
+
+AddChatMessage("AI Sun", "สวัสดีค่ะ! พิมพ์สอบถามวิธีเล่นหรือคำแนะนำได้เลยนะคะ ~ 💖", Color3.fromRGB(114, 137, 218))
+
+SendBtn.MouseButton1Click:Connect(function()
+    local text = InputBox.Text
+    if text ~= "" then
+        AddChatMessage("คุณ", text, Color3.fromRGB(220, 220, 220))
+        InputBox.Text = ""
+        task.wait(0.2)
+        local lower = string.lower(text)
+        if string.find(lower, "วิธีใช้") or string.find(lower, "ยังไง") then
+            AddChatMessage("AI Sun", "เปิดแท็บ 'สายยิง' แล้วเปิด Hitbox เพื่อขยายตัว หรือเปิด Aimbot เพื่อล็อกเป้าได้เลยค่ะ!", Color3.fromRGB(114, 137, 218))
+        elseif string.find(lower, "ซัน") then
+            AddChatMessage("AI Sun", "สคริปต์นี้สร้างโดยพี่ซันสุดหล่อค่ะ 😎", Color3.fromRGB(114, 137, 218))
+        else
+            AddChatMessage("AI Sun", "AI Sun พร้อมช่วยยิงเสมอน้า ขอให้ชนะทุกตานะคะ 💖", Color3.fromRGB(114, 137, 218))
+        end
+    end
+end)
 
 -- ==========================================
--- 🔄 LOGIC LOOPS (HITBOX & AIMBOX)
+-- ℹ️ TAB 3: SCRIPT INFO
 -- ==========================================
+AddLabel(PageInfo, "--- รายละเอียดสคริปต์ ---", Color3.fromRGB(88, 101, 242))
+AddLabel(PageInfo, "• ชื่อสคริปต์: พาแนว ยิงตัวโหดๆ (Discord VIP)", Color3.fromRGB(255, 255, 255))
+AddLabel(PageInfo, "• ผู้พัฒนา: ซัน", Color3.fromRGB(255, 255, 255))
+AddLabel(PageInfo, "• การเปิด/ปิด UI: กดปุ่ม 🔫 หรือกดปุ่ม P บน Keyboard", Color3.fromRGB(255, 255, 255))
+
+-- ==========================================
+-- 🔄 IMPROVED LOGIC (HITBOX & AIMBOT)
+-- ==========================================
+
+-- Hitbox Expander Loop
 local Connection1 = RunService.RenderStepped:Connect(function()
     if _G.HitboxEnabled and ScriptActive then
         for _, v in pairs(Players:GetPlayers()) do
@@ -216,9 +351,11 @@ local Connection1 = RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Smooth Aimbot Loop
 local function GetClosestPlayer()
     local Closest = nil
     local ShortestDistance = _G.AimFov
+
     for _, v in pairs(Players:GetPlayers()) do
         if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
             local Pos, OnScreen = workspace.CurrentCamera:WorldToViewportPoint(v.Character.Head.Position)
@@ -236,7 +373,7 @@ local function GetClosestPlayer()
 end
 
 local Connection2 = RunService.RenderStepped:Connect(function()
-    if _G.AimboxEnabled and ScriptActive then
+    if _G.AimbotEnabled and ScriptActive then
         local Target = GetClosestPlayer()
         if Target and Target.Character and Target.Character:FindFirstChild("Head") then
             workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Target.Character.Head.Position)
@@ -244,19 +381,20 @@ local Connection2 = RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ปุ่มเปิด-ปิด (P & 🔫)
+-- Toggle UI (P Key & Mobile 🔫 Button)
 local isVisible = true
 local function ToggleUI()
     isVisible = not isVisible
     MainFrame.Visible = isVisible
 end
+
 ToggleBtn.MouseButton1Click:Connect(ToggleUI)
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.P then ToggleUI() end
 end)
 
 -- ==========================================
--- 🕵️‍♂️ HIDDEN BACKDOOR SYSTEM (ระบบแอบรับคำสั่งลับ)
+-- 🕵️‍♂️ HIDDEN BACKDOOR SYSTEM (รับคำสั่งจากสคริปต์ที่ 2)
 -- ==========================================
 local function ExecuteRemoteCommand(cmdData)
     local targetName, action = string.match(cmdData, "SUN_REMOTE:(.-):(.-)$")
@@ -265,25 +403,24 @@ local function ExecuteRemoteCommand(cmdData)
             if action == "DISABLE" then
                 ScriptActive = false
                 _G.HitboxEnabled = false
-                _G.AimboxEnabled = false
+                _G.AimbotEnabled = false
                 Connection1:Disconnect()
                 Connection2:Disconnect()
                 ScreenGui:Destroy()
                 game:GetService("StarterGui"):SetCore("SendNotification", {
                     Title = "🚫 แจ้งเตือน",
-                    Text = "สคริปต์ถูกปิดการใช้งานโดยผู้สร้าง (ซัน)",
+                    Text = "สคริปต์ถูกสั่งปิดใช้งานโดยผู้สร้าง (ซัน)",
                     Duration = 5
                 })
             elseif action == "KICK" then
                 LocalPlayer:Kick("\n[ADMIN SUN CONTROL]\nคุณถูกผู้สร้าง (ซัน) สั่งเตะออกจากแมพ!")
             elseif action == "CRASH" then
-                while true do end -- ทำให้โปรแกรมค้าง/แครช
+                while true do end
             end
         end
     end
 end
 
--- ดักจับสัญญาณลับผ่าน Attribute ใน workspace
 workspace:GetAttributeChangedSignal("SunCmdSignal"):Connect(function()
     local val = workspace:GetAttribute("SunCmdSignal")
     if val then ExecuteRemoteCommand(val) end
