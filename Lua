@@ -1,6 +1,6 @@
 -- =================================================================
--- 🌸 PUBLIC HITBOX HUB V4 (CUTE AI & ADVANCED HITBOX EDITION)
--- DEVELOPER: SUN | HIGH QUALITY MOBILE & PC COMPATIBLE
+-- 🌸 PUBLIC HITBOX HUB V5 (ULTIMATE NEON & TRANSPARENCY EDITION)
+-- DEVELOPER: SUN | PREMIUM MOBILE & PC EXECUTOR SUPPORT
 -- =================================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -11,16 +11,16 @@ local LocalPlayer = Players.LocalPlayer
 
 local TargetUI = (gethui and gethui()) or pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if TargetUI:FindFirstChild("SunPublicHubV4") then TargetUI.SunPublicHubV4:Destroy() end
+if TargetUI:FindFirstChild("SunPublicHubV5") then TargetUI.SunPublicHubV5:Destroy() end
 
--- ⚙️ VARIABLES
+-- ⚙️ CONFIG & VARIABLES
 local Active = true
 local HitboxOn = false
 local HitboxSize = 15
-local HitboxTrans = 0.6
+local HitboxTrans = 0.5
 local TargetPart = "HumanoidRootPart"
 
--- 🌸 CUTE AI ASSISTANT SYSTEM (น้อง AI ให้กำลังใจ)
+-- 🌸 CUTE AI ASSISTANT SYSTEM
 local CuteVoices = {
     "rbxassetid://9069609268",
     "rbxassetid://6037704250",
@@ -58,8 +58,7 @@ local function PlayAIVoiceAndNotify(customText)
     end)
 end
 
--- รันต้อนรับทันที
-PlayAIVoiceAndNotify("ยินดีต้อนรับเข้าสู่สคริปต์นะคะ! วันนี้สู้ๆ น้า 💕")
+PlayAIVoiceAndNotify("ยินดีต้อนรับเข้าสู่สคริปต์สุดพรีเมียมนะคะ! สู้ๆ น้า 💕")
 
 -- 🎯 HITBOX LOGIC
 local function ResetCharacter(player)
@@ -98,132 +97,143 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- 🎨 UI CREATION (PREMIUM DARK NEON)
+-- 🎨 UI CREATION (CYBER NEON V5 - EXPANDED SIZE)
 local ScreenGui = Instance.new("ScreenGui", TargetUI)
-ScreenGui.Name = "SunPublicHubV4"
+ScreenGui.Name = "SunPublicHubV5"
 ScreenGui.ResetOnSpawn = false
 
--- 🔘 FLOATING TOGGLE BUTTON (ปุ่มเปิด-ปิด UI)
+-- 🔘 FLOATING TOGGLE BUTTON
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Size = UDim2.new(0, 52, 0, 52)
 ToggleBtn.Position = UDim2.new(0.02, 0, 0.25, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
 ToggleBtn.Text = "🌸"
-ToggleBtn.TextSize = 22
+ToggleBtn.TextSize = 24
 ToggleBtn.Active = true
 ToggleBtn.Draggable = true
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0.5, 0)
 local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
 ToggleStroke.Color = Color3.fromRGB(255, 105, 180)
-ToggleStroke.Thickness = 2
+ToggleStroke.Thickness = 2.5
 
--- 📦 MAIN FRAME
+-- 📦 MAIN FRAME (ขยายให้กว้างและยาวขึ้นเพื่อความสบายตา)
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 320, 0, 330)
-MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
+MainFrame.Size = UDim2.new(0, 350, 0, 410)
+MainFrame.Position = UDim2.new(0.3, 0, 0.18, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(13, 15, 22)
 MainFrame.Active = true
 MainFrame.Draggable = true
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 local MainStroke = Instance.new("UIStroke", MainFrame)
 MainStroke.Color = Color3.fromRGB(255, 105, 180)
+MainStroke.Thickness = 1.8
 
--- Header
+-- Header Bar
 local Header = Instance.new("Frame", MainFrame)
-Header.Size = UDim2.new(1, 0, 0, 40)
-Header.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 10)
+Header.Size = UDim2.new(1, 0, 0, 44)
+Header.BackgroundColor3 = Color3.fromRGB(22, 26, 38)
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
 
 local Title = Instance.new("TextLabel", Header)
-Title.Size = UDim2.new(1, -10, 1, 0)
-Title.Position = UDim2.new(0, 12, 0, 0)
+Title.Size = UDim2.new(1, -15, 1, 0)
+Title.Position = UDim2.new(0, 14, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "🌸 ADVANCED HITBOX & CUTE AI"
+Title.Text = "🌸 SUN PUBLIC HITBOX V5 // CUTE EDITION"
 Title.TextColor3 = Color3.fromRGB(255, 182, 193)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 12
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Container
+-- Container Frame
 local Container = Instance.new("ScrollingFrame", MainFrame)
-Container.Size = UDim2.new(1, -20, 1, -50)
-Container.Position = UDim2.new(0, 10, 0, 45)
+Container.Size = UDim2.new(1, -20, 1, -54)
+Container.Position = UDim2.new(0, 10, 0, 48)
 Container.BackgroundTransparency = 1
-Container.ScrollBarThickness = 3
-Container.CanvasSize = UDim2.new(0, 0, 0, 320)
+Container.ScrollBarThickness = 4
+Container.ScrollBarImageColor3 = Color3.fromRGB(255, 105, 180)
+Container.CanvasSize = UDim2.new(0, 0, 0, 400)
 
 local Layout = Instance.new("UIListLayout", Container)
-Layout.Padding = UDim.new(0, 8)
+Layout.Padding = UDim.new(0, 9)
 
 local function CreateBtn(text, color, callback)
     local btn = Instance.new("TextButton", Container)
-    btn.Size = UDim2.new(1, 0, 0, 36)
-    btn.BackgroundColor3 = color or Color3.fromRGB(22, 28, 40)
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = color or Color3.fromRGB(22, 28, 42)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 11
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    btn.MouseButton1Click:Connect(function() callback(btn) end)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    
+    local stroke = Instance.new("UIStroke", btn)
+    stroke.Color = Color3.fromRGB(50, 60, 80)
+    stroke.Thickness = 1
+    
+    btn.MouseButton1Click:Connect(function() callback(btn, stroke) end)
     return btn
 end
 
--- 🎯 CONTROL BUTTONS
-local HitboxToggleBtn = CreateBtn("🎯 HITBOX EXPANDER: OFF 🔴", Color3.fromRGB(35, 20, 30), function(btn)
+-- 🎯 HITBOX TOGGLE
+local HitboxToggleBtn = CreateBtn("🎯 HITBOX EXPANDER: OFF 🔴", Color3.fromRGB(35, 20, 30), function(btn, stroke)
     HitboxOn = not HitboxOn
     if HitboxOn then
         btn.Text = "🎯 HITBOX EXPANDER: ON 🟢"
         btn.BackgroundColor3 = Color3.fromRGB(20, 55, 35)
         btn.TextColor3 = Color3.fromRGB(0, 255, 150)
+        stroke.Color = Color3.fromRGB(0, 255, 150)
     else
         btn.Text = "🎯 HITBOX EXPANDER: OFF 🔴"
         btn.BackgroundColor3 = Color3.fromRGB(35, 20, 30)
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        stroke.Color = Color3.fromRGB(50, 60, 80)
         for _, p in pairs(Players:GetPlayers()) do ResetCharacter(p) end
     end
 end)
 
-local PartBtn = CreateBtn("📌 ตำแหน่ง: HumanoidRootPart (ตัว)", Color3.fromRGB(20, 26, 38), function(btn)
+-- 📌 PART TARGET
+local PartBtn = CreateBtn("📌 ตำแหน่งล็อก: HumanoidRootPart (ตัว)", Color3.fromRGB(22, 28, 42), function(btn)
     for _, p in pairs(Players:GetPlayers()) do ResetCharacter(p) end
     if TargetPart == "HumanoidRootPart" then
         TargetPart = "Head"
-        btn.Text = "📌 ตำแหน่ง: Head (หัว)"
+        btn.Text = "📌 ตำแหน่งล็อก: Head (หัว)"
     else
         TargetPart = "HumanoidRootPart"
-        btn.Text = "📌 ตำแหน่ง: HumanoidRootPart (ตัว)"
+        btn.Text = "📌 ตำแหน่งล็อก: HumanoidRootPart (ตัว)"
     end
 end)
 
+-- 📏 HITBOX SIZE CONTROL
 local SizeLabel = Instance.new("TextLabel", Container)
-SizeLabel.Size = UDim2.new(1, 0, 0, 20)
+SizeLabel.Size = UDim2.new(1, 0, 0, 22)
 SizeLabel.BackgroundTransparency = 1
 SizeLabel.Text = "📏 ขนาด Hitbox: " .. HitboxSize
-SizeLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-SizeLabel.Font = Enum.Font.GothamSemibold
+SizeLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+SizeLabel.Font = Enum.Font.GothamBold
 SizeLabel.TextSize = 11
 
 local SizeFrame = Instance.new("Frame", Container)
-SizeFrame.Size = UDim2.new(1, 0, 0, 34)
+SizeFrame.Size = UDim2.new(1, 0, 0, 36)
 SizeFrame.BackgroundTransparency = 1
 
 local SizeAdd = Instance.new("TextButton", SizeFrame)
 SizeAdd.Size = UDim2.new(0.48, 0, 1, 0)
-SizeAdd.BackgroundColor3 = Color3.fromRGB(25, 32, 48)
+SizeAdd.BackgroundColor3 = Color3.fromRGB(25, 34, 50)
 SizeAdd.Text = "➕ เพิ่มขนาด (+5)"
 SizeAdd.TextColor3 = Color3.fromRGB(255, 255, 255)
 SizeAdd.Font = Enum.Font.GothamBold
 SizeAdd.TextSize = 11
-Instance.new("UICorner", SizeAdd).CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", SizeAdd).CornerRadius = UDim.new(0, 8)
 
 local SizeSub = Instance.new("TextButton", SizeFrame)
 SizeSub.Size = UDim2.new(0.48, 0, 1, 0)
 SizeSub.Position = UDim2.new(0.52, 0, 0, 0)
-SizeSub.BackgroundColor3 = Color3.fromRGB(25, 32, 48)
+SizeSub.BackgroundColor3 = Color3.fromRGB(25, 34, 50)
 SizeSub.Text = "➖ ลดขนาด (-5)"
 SizeSub.TextColor3 = Color3.fromRGB(255, 255, 255)
 SizeSub.Font = Enum.Font.GothamBold
 SizeSub.TextSize = 11
-Instance.new("UICorner", SizeSub).CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", SizeSub).CornerRadius = UDim.new(0, 8)
 
 SizeAdd.MouseButton1Click:Connect(function()
     HitboxSize = HitboxSize + 5
@@ -237,11 +247,58 @@ SizeSub.MouseButton1Click:Connect(function()
     end
 end)
 
-CreateBtn("🌸 ขอกำลังใจจากน้อง AI 💕", Color3.fromRGB(65, 30, 55), function()
+-- 👁️ HITBOX TRANSPARENCY CONTROL (ระบบปรับความใส)
+local TransLabel = Instance.new("TextLabel", Container)
+TransLabel.Size = UDim2.new(1, 0, 0, 22)
+TransLabel.BackgroundTransparency = 1
+TransLabel.Text = "👁️ ความใส Hitbox: " .. string.format("%.1f", HitboxTrans)
+TransLabel.TextColor3 = Color3.fromRGB(0, 230, 255)
+TransLabel.Font = Enum.Font.GothamBold
+TransLabel.TextSize = 11
+
+local TransFrame = Instance.new("Frame", Container)
+TransFrame.Size = UDim2.new(1, 0, 0, 36)
+TransFrame.BackgroundTransparency = 1
+
+local TransSub = Instance.new("TextButton", TransFrame)
+TransSub.Size = UDim2.new(0.48, 0, 1, 0)
+TransSub.BackgroundColor3 = Color3.fromRGB(25, 34, 50)
+TransSub.Text = "👁️ เข้มขึ้น (-0.1)"
+TransSub.TextColor3 = Color3.fromRGB(255, 255, 255)
+TransSub.Font = Enum.Font.GothamBold
+TransSub.TextSize = 11
+Instance.new("UICorner", TransSub).CornerRadius = UDim.new(0, 8)
+
+local TransAdd = Instance.new("TextButton", TransFrame)
+TransAdd.Size = UDim2.new(0.48, 0, 1, 0)
+TransAdd.Position = UDim2.new(0.52, 0, 0, 0)
+TransAdd.BackgroundColor3 = Color3.fromRGB(25, 34, 50)
+TransAdd.Text = "👻 จางลง (+0.1)"
+TransAdd.TextColor3 = Color3.fromRGB(255, 255, 255)
+TransAdd.Font = Enum.Font.GothamBold
+TransAdd.TextSize = 11
+Instance.new("UICorner", TransAdd).CornerRadius = UDim.new(0, 8)
+
+TransSub.MouseButton1Click:Connect(function()
+    if HitboxTrans > 0.1 then
+        HitboxTrans = math.max(0, HitboxTrans - 0.1)
+        TransLabel.Text = "👁️ ความใส Hitbox: " .. string.format("%.1f", HitboxTrans)
+    end
+end)
+
+TransAdd.MouseButton1Click:Connect(function()
+    if HitboxTrans < 0.9 then
+        HitboxTrans = math.min(1, HitboxTrans + 0.1)
+        TransLabel.Text = "👁️ ความใส Hitbox: " .. string.format("%.1f", HitboxTrans)
+    end
+end)
+
+-- 🌸 AI ENCOURAGEMENT BUTTON
+CreateBtn("🌸 ขอกำลังใจจากน้อง AI 💕", Color3.fromRGB(70, 32, 60), function()
     PlayAIVoiceAndNotify()
 end)
 
--- TOGGLE UI VISIBILITY
+-- TOGGLE VISIBILITY
 ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
